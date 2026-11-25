@@ -13,6 +13,7 @@ import {
   activeWorld,
   currentMission,
   isMissionUnlocked,
+  isWorldComplete,
   isWorldMastered,
   isWorldUnlocked,
   worldCleared,
@@ -25,23 +26,27 @@ export const Route = createFileRoute("/map")({
   component: MapPage,
 });
 
-function TipCard({ world, locked, cleared }) {
+function TipCard({ world, locked, cleared, complete }) {
   const isFinalWorld = world.index === WORLDS[WORLDS.length - 1].index;
   const text = locked
-    ? `Clear World ${world.index - 1} to open this world!`
-    : cleared
+    ? `Complete World ${world.index - 1} to play these quests.`
+    : complete
       ? isFinalWorld
-        ? "Pass the Mastery Challenge to finish the campaign!"
-        : "Pass the Mastery Challenge to unlock the next world!"
-      : isFinalWorld
-        ? "Complete all quests in this world to finish the campaign!"
-        : "Complete all quests in this world to unlock the next world!";
+        ? "World complete. You've finished the campaign!"
+        : "World complete. The next world is open!"
+      : cleared
+        ? isFinalWorld
+          ? "Pass the Mastery Challenge to finish the campaign!"
+          : "Pass the Mastery Challenge to unlock the next world!"
+        : isFinalWorld
+          ? "Complete all quests in this world to finish the campaign!"
+          : "Complete all quests in this world to unlock the next world!";
 
   return (
     <div className="pointer-events-auto flex max-w-[280px] items-center gap-3 rounded-[18px] bg-[#FBF3DF]/95 px-4 py-3 shadow-[0_8px_20px_rgba(30,40,20,0.22)]">
       <Trophy className="h-8 w-8 shrink-0 text-[#F0B400] drop-shadow-[0_1px_0_#B98400]" fill="currentColor" strokeWidth={1.5} stroke="#C99400" />
       <p className="text-[13px] font-semibold leading-snug text-[#3A3328]">{text}</p>
-      <Lock className="h-7 w-7 shrink-0 text-[#8E887C]" strokeWidth={2.6} />
+      {!complete && <Lock className="h-7 w-7 shrink-0 text-[#8E887C]" strokeWidth={2.6} />}
     </div>
   );
 }
@@ -73,6 +78,7 @@ function MapPage() {
   const unlocked = isWorldUnlocked(world.id, progress);
   const cleared = worldCleared(world.id, progress);
   const mastered = isWorldMastered(world.id, progress);
+  const complete = isWorldComplete(world.id, progress);
 
   const openMission = (id) => {
     if (!isMissionUnlocked(id, progress)) {
@@ -119,7 +125,7 @@ function MapPage() {
             Back to Worlds
           </button>
 
-          <TipCard world={world} locked={!unlocked} cleared={cleared} />
+          <TipCard world={world} locked={!unlocked} cleared={cleared} complete={complete} />
         </div>
 
         <button
@@ -143,7 +149,7 @@ function MapPage() {
 
       <div className="relative z-20 mx-3 mb-6 mt-3 flex flex-col items-center gap-2 sm:hidden">
         <MasteryGate world={world} cleared={cleared} mastered={mastered} />
-        <TipCard world={world} locked={!unlocked} cleared={cleared} />
+        <TipCard world={world} locked={!unlocked} cleared={cleared} complete={complete} />
       </div>
 
       <WorldPicker

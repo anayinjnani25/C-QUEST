@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import { isMissionUnlocked } from "@/lib/game/curriculum";
+import { WORLDS, isBossSkip, isMissionUnlocked } from "@/lib/game/curriculum";
 import QuestStop from "@/components/game/map/QuestStop";
 import MapSign from "@/components/game/map/MapSign";
 
@@ -38,7 +38,12 @@ export default function WorldStage({
     (mission) => !isMissionUnlocked(mission.id, progress),
   );
   // One signpost, beside the first locked quest, at the spot traced for it in the art.
-  const signPos = firstLocked > 0 ? art.nodes[firstLocked].sign : null;
+  // In a world that isn't open yet, the sign sits beside Quest 2 and names the world to finish.
+  const worldLocked = firstLocked === 0;
+  const signPos = firstLocked > 0 ? art.nodes[firstLocked].sign : worldLocked ? art.nodes[1]?.sign : null;
+  const signText = worldLocked
+    ? `Complete World ${WORLDS[WORLDS.indexOf(world) - 1]?.index} to unlock these quests!`
+    : `Complete Quest ${firstLocked} to unlock the next challenge!`;
   // On screens narrower than the art, the map scrolls sideways and starts on the quest to play.
   const focusIndex = Math.max(
     0,
@@ -93,7 +98,7 @@ export default function WorldStage({
                 <MapSign
                   x={signPos.x}
                   y={signPos.y}
-                  text={`Complete Quest ${firstLocked} to unlock the next challenge!`}
+                  text={signText}
                 />
               )}
 
@@ -118,6 +123,7 @@ export default function WorldStage({
                       number={i + 1}
                       state={state}
                       stars={record?.stars || 0}
+                      skip={state !== "locked" && isBossSkip(mission.id, progress)}
                       onOpen={() => onOpenMission(mission.id)}
                     />
                   </div>

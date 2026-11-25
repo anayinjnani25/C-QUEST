@@ -43,7 +43,6 @@ export default function WorldPicker({ open, onClose, worlds, activeId, progress,
               <button
                 key={world.id}
                 type="button"
-                disabled={!open_}
                 onClick={() => {
                   onSelect(world.id);
                   onClose();
@@ -53,14 +52,13 @@ export default function WorldPicker({ open, onClose, worlds, activeId, progress,
                   world.id === activeId
                     ? "border-brand bg-brand/15"
                     : "border-frame bg-card hover:-translate-y-0.5 hover:border-brand/40",
-                  !open_ && "cursor-not-allowed opacity-70 hover:translate-y-0"
                 )}
               >
                 <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[12px] ring-2 ring-frame">
                   <img
                     src={art?.image || WORLD_ART.w1.image}
                     alt=""
-                    className={cn("h-full w-full object-cover", !open_ && "grayscale")}
+                    className={cn("h-full w-full object-cover", !open_ && "saturate-50")}
                     style={{ objectPosition: art?.thumb?.position || "50% 50%" }}
                   />
                   {!open_ && (

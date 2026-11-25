@@ -1102,25 +1102,35 @@ export function isWorldMastered(worldId, progress) {
   return Boolean(progress?.mastery?.[`world-${worldId}`]);
 }
 
-// A world opens only when every quest in the previous world is cleared AND the
-// previous world's Mastery Challenge has been passed.
+// A world counts as complete when its Mastery Challenge is passed, or when the player
+// skipped it by beating the boss quest before clearing the other quests
+// (recorded in progress.skippedWorlds when that boss is completed).
+export function isWorldComplete(worldId, progress) {
+  return isWorldMastered(worldId, progress) || Boolean(progress?.skippedWorlds?.[worldId]);
+}
+
+// Every world's map can be viewed. Its quests open only once the previous world is complete.
 export function isWorldUnlocked(worldId, progress) {
   const index = WORLDS.findIndex((w) => w.id === worldId);
   if (index <= 0) return true;
-  const previous = WORLDS[index - 1];
-  const cleared = previous.missions.every((m) => Boolean(progress?.missions?.[m.id]));
-  return cleared && isWorldMastered(previous.id, progress);
+  return isWorldComplete(WORLDS[index - 1].id, progress);
 }
 
-// The world the learner is working in: a locked world, a world with quests left,
-// or a finished world whose Mastery Challenge is still pending.
+// The world the learner is working in: the first one that isn't complete yet
+// (quests left, or every quest cleared with the Mastery Challenge still pending).
 export function activeWorld(progress) {
   for (const world of WORLDS) {
-    if (!isWorldUnlocked(world.id, progress)) return world;
-    if (world.missions.some((m) => !progress?.missions?.[m.id])) return world;
-    if (!isWorldMastered(world.id, progress)) return world;
+    if (!isWorldComplete(world.id, progress)) return world;
   }
   return WORLDS[WORLDS.length - 1];
+}
+
+// True when beating this boss now would skip the rest of its world.
+export function isBossSkip(missionId, progress) {
+  const mission = missionById(missionId);
+  if (!mission?.boss || progress?.missions?.[missionId]) return false;
+  const world = worldById(mission.world);
+  return world.missions.some((m) => m.id !== missionId && !progress?.missions?.[m.id]);
 }
 
 // A lesson can be challenged once it is on the trail and not yet cleared.
@@ -1143,7 +1153,8 @@ export function isMissionUnlocked(missionId, progress) {
   if (!isWorldUnlocked(mission.world, progress)) return false;
   const world = worldById(mission.world);
   const index = world.missions.findIndex((m) => m.id === missionId);
-  if (index === 0) return true;
+  // The boss is always open in an open world: beating it early skips the world.
+  if (index === 0 || mission.boss) return true;
   return Boolean(progress?.missions?.[world.missions[index - 1].id]);
 }
 

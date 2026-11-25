@@ -27,7 +27,7 @@ function Pedestal({ className }) {
 }
 
 // The button is anchored on the centre of its circle; the label hangs below it.
-export default function QuestStop({ mission, number, state, stars = 0, onOpen }) {
+export default function QuestStop({ mission, number, state, stars = 0, skip = false, onOpen }) {
   const boss = Boolean(mission.boss);
   const title = titleCase(mission.title.replace(/^BOSS:\s*/, ""));
   const locked = state === "locked";
@@ -39,7 +39,7 @@ export default function QuestStop({ mission, number, state, stars = 0, onOpen })
       type="button"
       onClick={onOpen}
       disabled={locked}
-      aria-label={`${mission.title}${locked ? " (locked)" : ""}`}
+      aria-label={`${mission.title}${locked ? " (locked)" : skip ? " (beat it to skip this world)" : ""}`}
       className={cn(
         "group absolute left-0 top-0 z-10 grid -translate-x-1/2 -translate-y-1/2 place-items-center transition-transform duration-200",
         current ? "z-20" : "",
@@ -153,6 +153,11 @@ export default function QuestStop({ mission, number, state, stars = 0, onOpen })
         >
           {title}
         </span>
+        {skip && (
+          <span className="mt-0.5 block text-[9px] font-extrabold uppercase tracking-[0.06em] text-[#8A4FD0] sm:text-[10.5px]">
+            Beat it to skip this world
+          </span>
+        )}
         {stars > 0 && (
           <span className="mt-0.5 flex justify-center gap-0.5">
             {[1, 2, 3].map((n) => (

@@ -1,4 +1,4 @@
-import { WORLDS, MISSIONS, missionById } from "@/lib/game/curriculum";
+import { WORLDS, MISSIONS, isBossSkip, missionById } from "@/lib/game/curriculum";
 
 const BOSS_IDS = MISSIONS.filter((m) => m.boss).map((m) => m.id);
 
@@ -137,6 +137,11 @@ export function applyCompletion(save, missionId, payload) {
     },
     streak: require_streak(progress.streak),
   };
+  // Beating a boss before the rest of its world skips that world and opens the next one.
+  if (isBossSkip(missionId, progress)) {
+    const worldId = missionById(missionId).world;
+    nextProgress.skippedWorlds = { ...(progress.skippedWorlds || {}), [worldId]: true };
+  }
 
   const { unlocked, newly } = evaluateAchievements(nextProgress, progress.achievements || {});
   nextProgress.achievements = unlocked;
