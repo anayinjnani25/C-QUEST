@@ -17,7 +17,7 @@ export default function WorldCard({ world, progress, unlocked, onOpenWorlds, com
       <div className="flex items-start gap-3">
         <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-[16px] shadow-[0_4px_10px_rgba(30,50,80,0.25)] sm:h-[92px] sm:w-[110px]">
           <img
-            src={art?.image || "/images/world-1.jpg"}
+            src={art?.image || WORLD_ART.w1.image}
             alt=""
             className="h-full w-full object-cover"
             style={{

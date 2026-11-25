@@ -4,9 +4,12 @@
 // quest is the first locked one.
 // `thumb` frames the world's landmark for the small picture on the world card.
 
+// Image paths go through the deploy base, since GitHub Pages serves the game from /C-QUEST/.
+const img = (name) => `${import.meta.env.BASE_URL}images/${name}`;
+
 export const WORLD_ART = {
   w1: {
-    image: "/images/world-1.jpg",
+    image: img("world-1.jpg"),
     ratio: 1600 / 900,
     thumb: { position: "22% 48%", zoom: 2.4 },
     nodes: [
@@ -18,7 +21,7 @@ export const WORLD_ART = {
     ],
   },
   w2: {
-    image: "/images/world-2.jpg",
+    image: img("world-2.jpg"),
     ratio: 1536 / 864,
     thumb: { position: "52% 4%", zoom: 2.4 },
     nodes: [
@@ -30,7 +33,7 @@ export const WORLD_ART = {
     ],
   },
   w3: {
-    image: "/images/world-3.jpg",
+    image: img("world-3.jpg"),
     ratio: 1600 / 900,
     thumb: { position: "20% 46%", zoom: 2.4 },
     nodes: [
@@ -42,7 +45,7 @@ export const WORLD_ART = {
     ],
   },
   w4: {
-    image: "/images/world-4.jpg",
+    image: img("world-4.jpg"),
     ratio: 1600 / 900,
     thumb: { position: "30% 36%", zoom: 2.4 },
     nodes: [
@@ -54,7 +57,7 @@ export const WORLD_ART = {
     ],
   },
   w5: {
-    image: "/images/world-5.jpg",
+    image: img("world-5.jpg"),
     ratio: 1392 / 752,
     thumb: { position: "50% 30%", zoom: 1.8 },
     nodes: [
@@ -66,7 +69,7 @@ export const WORLD_ART = {
     ],
   },
   w6: {
-    image: "/images/world-6.jpg",
+    image: img("world-6.jpg"),
     ratio: 1600 / 900,
     thumb: { position: "30% 38%", zoom: 2.4 },
     nodes: [

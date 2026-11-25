@@ -58,7 +58,7 @@ export default function WorldPicker({ open, onClose, worlds, activeId, progress,
               >
                 <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[12px] ring-2 ring-frame">
                   <img
-                    src={art?.image || "/images/world-1.jpg"}
+                    src={art?.image || WORLD_ART.w1.image}
                     alt=""
                     className={cn("h-full w-full object-cover", !open_ && "grayscale")}
                     style={{ objectPosition: art?.thumb?.position || "50% 50%" }}
