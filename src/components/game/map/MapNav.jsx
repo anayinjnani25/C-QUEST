@@ -1,15 +1,64 @@
 import { Link } from "@tanstack/react-router";
-import { Home, Map, Settings, Star, Trophy, User } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Home, MapPin, Moon, Settings, Star, Sun, Trophy, User, Volume2, VolumeX } from "lucide-react";
 import { useGame } from "@/lib/game/GameProvider";
 import { cn } from "@/lib/utils";
-import ThemeToggle from "@/components/game/ThemeToggle";
+import { useTheme } from "@/lib/theme/ThemeProvider";
 
 const TABS = [
   { to: "/", label: "Home", icon: Home },
-  { to: "/map", label: "World Map", icon: Map },
+  { to: "/map", label: "World Map", icon: MapPin },
   { to: "/profile", label: "Achievements", icon: Trophy },
   { to: "/profile", label: "Profile", icon: User },
 ];
+
+function SettingsMenu({ soundOn, toggleSound }) {
+  const { isDark, toggleTheme } = useTheme();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = (event) => {
+      if (event.type === "keydown" ? event.key === "Escape" : !ref.current?.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("pointerdown", close);
+      document.removeEventListener("keydown", close);
+    };
+  }, [open]);
+
+  const row =
+    "flex w-full items-center gap-2.5 rounded-[11px] px-3 py-2 text-left text-[13px] font-extrabold text-ink transition-colors hover:bg-hover";
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Settings"
+        aria-expanded={open}
+        className="grid h-11 w-11 place-items-center rounded-full bg-card text-ink shadow-[0_4px_14px_rgba(38,60,92,0.16)] transition-transform hover:-translate-y-0.5"
+      >
+        <Settings className="h-[22px] w-[22px]" fill="currentColor" stroke="hsl(var(--card))" strokeWidth={2} />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-48 rounded-[16px] bg-card p-1.5 shadow-[0_10px_28px_rgba(20,30,50,0.28)]">
+          <button type="button" className={row} onClick={toggleSound}>
+            {soundOn ? <Volume2 className="h-4 w-4" strokeWidth={2.6} /> : <VolumeX className="h-4 w-4" strokeWidth={2.6} />}
+            Sound {soundOn ? "on" : "off"}
+          </button>
+          <button type="button" className={row} onClick={toggleTheme}>
+            {isDark ? <Sun className="h-4 w-4" strokeWidth={2.6} /> : <Moon className="h-4 w-4" strokeWidth={2.6} />}
+            {isDark ? "Light mode" : "Dark mode"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function MapNav() {
   const { progress, level, soundOn, toggleSound } = useGame();
@@ -35,7 +84,7 @@ export default function MapNav() {
               key={tab.label}
               to={tab.to}
               className={cn(
-                "flex items-center gap-2 rounded-[13px] px-2.5 py-2 text-[13px] font-extrabold transition-colors sm:px-3.5",
+                "relative flex items-center gap-2 rounded-[13px] px-2.5 py-2 text-[14px] font-bold transition-colors sm:px-4",
                 active ? "text-[#58CC02]" : "text-ink-soft hover:bg-hover hover:text-ink"
               )}
             >
@@ -45,22 +94,25 @@ export default function MapNav() {
                 strokeWidth={active ? 0 : 2.6}
               />
               <span className="hidden lg:block">{tab.label}</span>
+              {active && (
+                <span className="absolute inset-x-2 -bottom-1.5 h-[5px] rounded-full bg-[#58CC02]" />
+              )}
             </Link>
           );
         })}
       </nav>
 
       <div className="pointer-events-auto ml-auto flex items-center gap-2">
-        <span className="flex items-center gap-1.5 rounded-[15px] bg-card px-2.5 py-2 shadow-[0_4px_14px_rgba(38,60,92,0.16)]">
-          <Star className="h-[18px] w-[18px] text-[#FFC800]" fill="currentColor" strokeWidth={0} />
-          <span className="text-[13px] font-extrabold text-ink">{progress?.stars || 0}</span>
+        <span className="flex items-center gap-1.5 rounded-full bg-card py-1.5 pl-2 pr-3.5 shadow-[0_4px_14px_rgba(38,60,92,0.16)]">
+          <Star className="h-[26px] w-[26px] text-[#FFC800] drop-shadow-[0_1px_0_#E0A200]" fill="currentColor" strokeWidth={0} />
+          <span className="text-[15px] font-extrabold text-ink">{progress?.stars || 0}</span>
         </span>
 
-        <span className="flex items-center gap-1.5 rounded-[15px] bg-card px-1.5 py-1.5 shadow-[0_4px_14px_rgba(38,60,92,0.16)]">
-          <span className="grid h-6 shrink-0 place-items-center rounded-full bg-[#FFC800] px-2 text-[10px] font-extrabold leading-none text-white">
+        <span className="flex items-center gap-2 rounded-full bg-card py-1.5 pl-1.5 pr-3 shadow-[0_4px_14px_rgba(38,60,92,0.16)]">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-[#F2B800] bg-[radial-gradient(circle_at_40%_30%,#FFE36B,#FFC21A)] text-[10.5px] font-extrabold leading-none text-[#5C4300]">
             Lv.{level.level}
           </span>
-          <span className="hidden h-2.5 w-16 overflow-hidden rounded-full bg-track md:block">
+          <span className="hidden h-3 w-24 overflow-hidden rounded-full bg-track md:block">
             <span
               className="block h-full rounded-full bg-[#58CC02]"
               style={{ width: `${Math.max(level.pct, 4)}%` }}
@@ -68,16 +120,7 @@ export default function MapNav() {
           </span>
         </span>
 
-        <ThemeToggle className="rounded-[15px] border-0 bg-card shadow-[0_4px_14px_rgba(10,22,34,0.28)]" />
-
-        <button
-          type="button"
-          onClick={toggleSound}
-          aria-label={soundOn ? "Mute sound" : "Unmute sound"}
-          className="grid h-10 w-10 place-items-center rounded-[15px] bg-card text-ink shadow-[0_4px_14px_rgba(38,60,92,0.16)] transition-transform hover:-translate-y-0.5"
-        >
-          <Settings className="h-[19px] w-[19px]" strokeWidth={2.6} />
-        </button>
+        <SettingsMenu soundOn={soundOn} toggleSound={toggleSound} />
       </div>
     </header>
   );

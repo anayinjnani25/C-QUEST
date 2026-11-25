@@ -58,6 +58,52 @@
     --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   }
 
+  /* The world map's HUD floats over bright painted art, so it keeps the light palette in both themes. */
+  .map-light {
+    color-scheme: light;
+    --background: 0 0% 97%;
+    --foreground: 0 0% 29%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 29%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 29%;
+    --primary: 94 98% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 94%;
+    --secondary-foreground: 0 0% 29%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 47%;
+    --accent: 199 92% 54%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 100% 65%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 94 98% 40%;
+    --brand: 94 98% 40%;
+    --brand-dark: 95 98% 32%;
+    --brand-light: 93 80% 49%;
+    --aqua: 199 92% 54%;
+    --sun: 51 100% 50%;
+    --tangerine: 35 100% 50%;
+    --coral: 0 100% 65%;
+    --grape: 277 100% 75%;
+    --ink: 0 0% 29%;
+    --ink-soft: 0 0% 47%;
+    --line: 0 0% 90%;
+    --surface: 0 0% 97%;
+    --frame: 0 0% 93%;
+    --tile: 0 0% 96%;
+    --track: 0 0% 94%;
+    --hover: 0 0% 97%;
+    --ink-faint: 0 0% 70%;
+    --brand-ink: 95 97% 32%;
+    --brand-tint: 96 78% 93%;
+    --sun-ink: 45 100% 33%;
+    --tangerine-ink: 28 100% 38%;
+    --card-shadow: 0 2px 0 hsl(var(--frame)), 0 14px 32px -22px hsl(0 0% 29% / 0.28);
+  }
+
   .dark {
     color-scheme: dark;
 

@@ -25,20 +25,23 @@ export const Route = createFileRoute("/map")({
   component: MapPage,
 });
 
-function TipCard({ world, locked }) {
+function TipCard({ world, locked, cleared }) {
   const isFinalWorld = world.index === WORLDS[WORLDS.length - 1].index;
+  const text = locked
+    ? `Clear World ${world.index - 1} to open this world!`
+    : cleared
+      ? isFinalWorld
+        ? "Pass the Mastery Challenge to finish the campaign!"
+        : "Pass the Mastery Challenge to unlock the next world!"
+      : isFinalWorld
+        ? "Complete all quests in this world to finish the campaign!"
+        : "Complete all quests in this world to unlock the next world!";
 
   return (
-    <div className="pointer-events-auto flex max-w-[250px] items-start gap-2.5 rounded-[16px] border-2 border-sun/30 bg-card/95 px-3 py-2.5 shadow-[0_8px_20px_rgba(30,40,20,0.22)]">
-      <Trophy className="mt-0.5 h-6 w-6 shrink-0 text-[#E0A200]" fill="currentColor" strokeWidth={0} />
-      <p className="text-[11.5px] font-extrabold leading-snug text-ink">
-        {locked
-          ? `Clear World ${world.index - 1} and its Mastery Challenge to open this trail.`
-          : isFinalWorld
-            ? "Clear all five quests, then pass the final Mastery Challenge to finish the campaign."
-            : "Clear all five quests, then pass the World Mastery Challenge to open the next world."}
-      </p>
-      {!locked && <Lock className="mt-0.5 h-4 w-4 shrink-0 text-[#8C6136]" strokeWidth={3} />}
+    <div className="pointer-events-auto flex max-w-[280px] items-center gap-3 rounded-[18px] bg-[#FBF3DF]/95 px-4 py-3 shadow-[0_8px_20px_rgba(30,40,20,0.22)]">
+      <Trophy className="h-8 w-8 shrink-0 text-[#F0B400] drop-shadow-[0_1px_0_#B98400]" fill="currentColor" strokeWidth={1.5} stroke="#C99400" />
+      <p className="text-[13px] font-semibold leading-snug text-[#3A3328]">{text}</p>
+      <Lock className="h-7 w-7 shrink-0 text-[#8E887C]" strokeWidth={2.6} />
     </div>
   );
 }
@@ -80,7 +83,7 @@ function MapPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#8ED8F8] dark:bg-[#0F1A20]">
+    <div className="map-light relative min-h-screen overflow-hidden bg-[#8ED8F8]">
       <MapNav />
 
       <div className="relative z-20 mt-2 px-3 sm:hidden">
@@ -102,21 +105,21 @@ function MapPage() {
           onOpenMission={openMission}
         />
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-16 z-20 hidden justify-center px-4 sm:flex">
+        <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 hidden justify-center px-4 sm:flex">
           <MasteryGate world={world} cleared={cleared} mastered={mastered} />
         </div>
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-3 z-20 hidden justify-between px-4 sm:flex">
+        <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 hidden items-end justify-between px-4 sm:flex">
           <button
             type="button"
             onClick={() => setPickerOpen(true)}
-            className="pointer-events-auto flex items-center gap-2 rounded-[16px] bg-card px-4 py-2.5 text-[13.5px] font-extrabold text-ink shadow-[0_6px_16px_rgba(30,40,20,0.25)] transition-transform hover:-translate-y-0.5"
+            className="pointer-events-auto flex items-center gap-3 rounded-[20px] bg-[#FBF6EA] py-3 pl-3 pr-6 text-[17px] font-extrabold text-[#2E2A22] shadow-[0_6px_16px_rgba(30,40,20,0.25)] transition-transform hover:-translate-y-0.5"
           >
-            <ArrowLeft className="h-4 w-4" strokeWidth={3.2} />
+            <ArrowLeft className="h-6 w-6" strokeWidth={3.2} />
             Back to Worlds
           </button>
 
-          <TipCard world={world} locked={!unlocked} />
+          <TipCard world={world} locked={!unlocked} cleared={cleared} />
         </div>
 
         <button
@@ -129,7 +132,7 @@ function MapPage() {
         </button>
       </div>
 
-      <div className="pointer-events-none absolute left-4 top-[92px] z-20 hidden sm:block">
+      <div className="pointer-events-none absolute left-4 top-[88px] z-20 hidden sm:block">
         <WorldCard
           world={world}
           progress={progress}
@@ -140,7 +143,7 @@ function MapPage() {
 
       <div className="relative z-20 mx-3 mb-6 mt-3 flex flex-col items-center gap-2 sm:hidden">
         <MasteryGate world={world} cleared={cleared} mastered={mastered} />
-        <TipCard world={world} locked={!unlocked} />
+        <TipCard world={world} locked={!unlocked} cleared={cleared} />
       </div>
 
       <WorldPicker

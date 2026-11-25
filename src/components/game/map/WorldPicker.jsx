@@ -61,7 +61,7 @@ export default function WorldPicker({ open, onClose, worlds, activeId, progress,
                     src={art?.image || "/images/world-1.jpg"}
                     alt=""
                     className={cn("h-full w-full object-cover", !open_ && "grayscale")}
-                    style={{ objectPosition: art?.thumbPosition || "50% 50%" }}
+                    style={{ objectPosition: art?.thumb?.position || "50% 50%" }}
                   />
                   {!open_ && (
                     <span className="absolute inset-0 grid place-items-center bg-[#22303F]/35 text-white">
