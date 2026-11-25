@@ -5,7 +5,7 @@ Supabase callback URL (you'll paste this into Google): `https://gxzzhbqqqmaakwsp
 
 Do the four parts in order. Total time: about 15 minutes.
 
-## 1. Create the database tables (Supabase)
+## 1. Create the database tables (Supabase): already done for gxzzhbqqqmaakwspdpat
 
 1. Open https://supabase.com/dashboard/project/gxzzhbqqqmaakwspdpat/sql/new
 2. Open `supabase/migrations/20261125000000_cquest_init.sql` from this project, copy all of it, paste it into the editor.
