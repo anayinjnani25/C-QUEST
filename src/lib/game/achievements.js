@@ -152,6 +152,22 @@ export function applyCompletion(save, missionId, payload) {
   };
 }
 
+// Records one passed program of a multi-part boss quest, so a player who leaves
+// half way keeps the programs they already solved.
+export function applyBossPart(save, missionId, partIndex) {
+  const progress = save.progress || {};
+  const done = progress.bossParts?.[missionId] || [];
+  if (done.includes(partIndex)) return save;
+  return {
+    ...save,
+    updatedAt: new Date().toISOString(),
+    progress: {
+      ...progress,
+      bossParts: { ...(progress.bossParts || {}), [missionId]: [...done, partIndex].sort((a, b) => a - b) },
+    },
+  };
+}
+
 // Kept local to avoid a circular import with storage.js helpers.
 function require_streak(streak) {
   const d = new Date();

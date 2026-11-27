@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, BookOpen, Code2, Crown, Lock, Play, RotateCcw, Sparkles } from "lucide-react";
+import { ArrowLeft, BookOpen, Check, Code2, Crown, Lock, Play, RotateCcw, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import AmbientBackground from "@/components/game/AmbientBackground";
 import BriefingPanel from "@/components/arena/BriefingPanel";
 import ThemeToggle from "@/components/game/ThemeToggle";
@@ -33,8 +34,24 @@ const TABS = [
 function MissionPage() {
   const { missionId } = Route.useParams();
   const navigate = useNavigate();
-  const { ready, activeSave, progress, completeMission } = useGame();
+  const { ready, activeSave, progress, completeMission, completeBossPart } = useGame();
   const mission = useMemo(() => missionById(missionId), [missionId]);
+  const parts = mission?.parts || null;
+  const [partIndex, setPartIndex] = useState(0);
+  // Attempts and hints across every program of a boss quest, for its star rating.
+  const [tally, setTally] = useState({ attempts: 0, hints: 0 });
+  // The program being solved: a boss quest swaps in the current part's goal, code and checks.
+  const active = useMemo(
+    () => (mission && parts ? { ...mission, ...(parts[partIndex] || parts[0]), title: mission.title } : mission),
+    [mission, parts, partIndex]
+  );
+  const draftKey = mission ? (parts && partIndex > 0 ? `${mission.id}.p${partIndex + 1}` : mission.id) : null;
+  const bossDone = Boolean(mission && progress?.missions?.[mission.id]);
+  const solvedParts = useMemo(() => {
+    if (!parts) return [];
+    if (bossDone) return parts.map((_, i) => i);
+    return progress?.bossParts?.[mission.id] || [];
+  }, [parts, bossDone, progress?.bossParts, mission?.id]);
 
   const [code, setCode] = useState("");
   const [result, setResult] = useState(null);
@@ -51,13 +68,26 @@ function MissionPage() {
     if (ready && !activeSave) navigate({ to: "/" });
   }, [ready, activeSave, navigate]);
 
+  // Opening a quest: a boss quest resumes at its first unsolved program.
   useEffect(() => {
     if (!mission || !activeSave) return;
+    const done = progress?.bossParts?.[mission.id] || [];
+    const firstOpen = parts && !progress?.missions?.[mission.id] ? parts.findIndex((_, i) => !done.includes(i)) : 0;
+    setPartIndex(Math.max(0, firstOpen));
+    setTally({ attempts: 0, hints: 0 });
+    setVictory(null);
+    setTab(typeof window !== "undefined" && window.innerWidth < 1024 ? "brief" : "code");
+    // Only when the quest or the save changes, not on every progress update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mission?.id, activeSave?.id]);
+
+  useEffect(() => {
+    if (!active || !activeSave) return;
     let cancelled = false;
-    const starter = mission.starter;
+    const starter = active.starter;
     setCode(starter);
     // The saved draft arrives from Supabase a moment later; keep any typing done meanwhile.
-    readDraft(activeSave.id, mission.id).then((draft) => {
+    readDraft(activeSave.id, draftKey).then((draft) => {
       if (!cancelled && draft) setCode((current) => (current === starter ? draft : current));
     });
     setResult(null);
@@ -65,59 +95,89 @@ function MissionPage() {
     setFeedback(null);
     setAttempts(0);
     setHintsUsed(0);
-    setVictory(null);
-    setTab(typeof window !== "undefined" && window.innerWidth < 1024 ? "brief" : "code");
     return () => {
       cancelled = true;
     };
-  }, [mission?.id, activeSave?.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftKey, activeSave?.id]);
+
+  const finishQuest = (stars, totalAttempts, totalHints) => {
+    const replay = Boolean(progress?.missions?.[mission.id]);
+    const xp = replay ? Math.round(mission.reward.xp * 0.2) : mission.reward.xp + stars * 5;
+    const coins = replay ? 0 : mission.reward.coins + (stars === 3 ? 10 : 0);
+    const { newly } = completeMission(mission.id, {
+      stars,
+      xp,
+      coins,
+      attempts: totalAttempts,
+      hints: totalHints,
+    });
+    sfx.success();
+    setFeedback(null);
+    setVictory({ stars, xp, coins, newly: newly || [] });
+  };
 
   const handleRun = () => {
     if (!mission || !activeSave) return;
     sfx.run();
     const res = runC(code);
-    const ev = evaluateChecks(mission, res, code);
+    const ev = evaluateChecks(active, res, code);
     setResult(res);
     setEvaluation(ev);
     const nextAttempts = attempts + 1;
     setAttempts(nextAttempts);
-    writeDraft(activeSave.id, mission.id, code);
+    writeDraft(activeSave.id, draftKey, code);
 
-    if (ev.passed) {
-      const stars = hintsUsed === 0 && attempts === 0 ? 3 : hintsUsed <= 1 && attempts <= 2 ? 2 : 1;
-      const replay = Boolean(progress?.missions?.[mission.id]);
-      const xp = replay ? Math.round(mission.reward.xp * 0.2) : mission.reward.xp + stars * 5;
-      const coins = replay ? 0 : mission.reward.coins + (stars === 3 ? 10 : 0);
-      const { newly } = completeMission(mission.id, {
-        stars,
-        xp,
-        coins,
-        attempts: nextAttempts,
-        hints: hintsUsed,
-      });
-      sfx.success();
-      setFeedback(null);
-      setVictory({ stars, xp, coins, newly: newly || [] });
-    } else {
+    if (!ev.passed) {
       sfx.fail();
-      setFeedback(buildTutorFeedback({ result: res, evaluation: ev, mission, attempts: nextAttempts }));
+      setFeedback(buildTutorFeedback({ result: res, evaluation: ev, mission: active, attempts: nextAttempts }));
       setTab("code");
+      return;
     }
+
+    if (!parts) {
+      const stars = hintsUsed === 0 && attempts === 0 ? 3 : hintsUsed <= 1 && attempts <= 2 ? 2 : 1;
+      finishQuest(stars, nextAttempts, hintsUsed);
+      return;
+    }
+
+    // Boss quest: every program has to pass before the boss is beaten.
+    const totals = { attempts: tally.attempts + nextAttempts, hints: tally.hints + hintsUsed };
+    setTally(totals);
+    const solved = new Set([...solvedParts, partIndex]);
+    const last = partIndex === parts.length - 1;
+    const remaining = parts.map((_, i) => i).filter((i) => !solved.has(i));
+    // A replayed boss counts as beaten again when its last program passes.
+    const beaten = bossDone ? last : remaining.length === 0;
+    if (beaten) {
+      const extra = Math.max(0, totals.attempts - parts.length);
+      const stars = totals.hints === 0 && extra === 0 ? 3 : totals.hints <= 2 && extra <= parts.length ? 2 : 1;
+      finishQuest(stars, totals.attempts, totals.hints);
+      return;
+    }
+    if (!bossDone) completeBossPart(mission.id, partIndex);
+    const next = bossDone ? partIndex + 1 : remaining.find((i) => i > partIndex) ?? remaining[0];
+    sfx.success();
+    setFeedback(null);
+    toast.success(`Program ${partIndex + 1} of ${parts.length} solved`, {
+      description: `Next up: ${parts[next].title}`,
+    });
+    setPartIndex(next);
   };
 
   const revealHint = () => {
-    if (!mission) return;
-    setHintsUsed((h) => Math.min(h + 1, mission.hints.length));
+    if (!active) return;
+    setHintsUsed((h) => Math.min(h + 1, active.hints.length));
     sfx.click();
   };
 
   const handleReset = () => {
     if (!mission || !activeSave) return;
-    setCode(mission.starter);
+    setCode(active.starter);
     setResult(null);
     setEvaluation(null);
     setFeedback(null);
-    writeDraft(activeSave.id, mission.id, mission.starter);
+    writeDraft(activeSave.id, draftKey, active.starter);
     sfx.click();
   };
 
@@ -211,6 +271,20 @@ function MissionPage() {
           </button>
         </header>
 
+        {parts ? (
+          <BossProgress
+            parts={parts}
+            current={partIndex}
+            solved={solvedParts}
+            onSelect={(i) => {
+              if (i === partIndex) return;
+              sfx.click();
+              setTally((t) => ({ attempts: t.attempts + attempts, hints: t.hints + hintsUsed }));
+              setPartIndex(i);
+            }}
+          />
+        ) : null}
+
         <div className="mt-2 flex gap-1 rounded-[20px] border-2 border-frame bg-card p-1 shadow-[0_2px_0_hsl(var(--frame))] lg:hidden">
           {TABS.map(([id, label, Icon]) => (
             <button
@@ -231,7 +305,7 @@ function MissionPage() {
         <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)_minmax(0,330px)] lg:gap-4">
           <div className={cn("space-y-3", tab !== "brief" && "hidden lg:block")}>
             <BriefingPanel
-              mission={mission}
+              mission={active}
               hintsUsed={hintsUsed}
               onRevealHint={revealHint}
               skippable={canSkipMission(mission.id, progress)}
@@ -246,7 +320,7 @@ function MissionPage() {
             <Terminal result={result} />
             <TutorPanel
               feedback={feedback}
-              hints={mission.hints}
+              hints={active.hints}
               hintsUsed={hintsUsed}
               onRevealHint={revealHint}
             />
@@ -254,7 +328,7 @@ function MissionPage() {
 
           <div className={cn("space-y-3", tab !== "memory" && "hidden lg:block")}>
             <MemoryViewer snapshots={snapshots} />
-            <ChecksPanel mission={mission} evaluation={evaluation} />
+            <ChecksPanel mission={active} evaluation={evaluation} />
           </div>
         </div>
       </div>
@@ -270,6 +344,45 @@ function MissionPage() {
         }}
         onMap={() => navigate({ to: "/map" })}
       />
+    </div>
+  );
+}
+function BossProgress({ parts, current, solved, onSelect }) {
+  const done = new Set(solved);
+  return (
+    <div className="mt-2 rounded-[20px] border-2 border-grape/40 bg-card p-2.5 shadow-[0_2px_0_hsl(var(--frame))]">
+      <div className="flex items-center justify-between gap-2 px-1">
+        <p className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.16em] text-grape">
+          <Crown className="h-3 w-3" fill="currentColor" strokeWidth={0} />
+          Program {current + 1} of {parts.length} · {parts[current].title}
+        </p>
+        <p className="text-[10px] font-extrabold text-ink-soft">
+          {done.size}/{parts.length} solved
+        </p>
+      </div>
+      <div className="mt-2 grid grid-cols-5 gap-1.5">
+        {parts.map((part, i) => (
+          <button
+            key={part.title}
+            type="button"
+            onClick={() => onSelect(i)}
+            title={part.title}
+            aria-label={`Program ${i + 1}: ${part.title}${done.has(i) ? " (solved)" : ""}`}
+            aria-current={i === current ? "step" : undefined}
+            className={cn(
+              "flex h-9 items-center justify-center gap-1 rounded-xl border-2 text-[12px] font-extrabold transition-all",
+              i === current
+                ? "border-grape bg-grape/16 text-grape"
+                : done.has(i)
+                  ? "border-brand/40 bg-brand-tint text-brand-ink"
+                  : "border-frame text-ink-soft hover:bg-hover"
+            )}
+          >
+            {done.has(i) ? <Check className="h-3.5 w-3.5" strokeWidth={4} /> : null}
+            {i + 1}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

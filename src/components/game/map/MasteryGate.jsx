@@ -3,10 +3,11 @@ import { ChevronRight, Crown, ShieldCheck } from "lucide-react";
 import { WORLDS } from "@/lib/game/curriculum";
 import { cn } from "@/lib/utils";
 
-export default function MasteryGate({ world, cleared, mastered, className }) {
-  if (!cleared) return null;
+// The Mastery Challenge is an optional bonus assessment. It appears once the world is
+// complete (its boss quest beaten); the boss quest is what opens the next world.
+export default function MasteryGate({ world, complete, mastered, className }) {
+  if (!complete) return null;
 
-  // The last world has no successor: its gate closes the campaign instead.
   const isFinalWorld = world.index === WORLDS[WORLDS.length - 1].index;
 
   if (mastered) {
@@ -21,7 +22,7 @@ export default function MasteryGate({ world, cleared, mastered, className }) {
         <p className="text-[12px] font-extrabold text-ink">
           World {world.index} mastered
           <span className="font-semibold text-ink-soft">
-            {isFinalWorld ? " · campaign complete" : " · next world open"}
+            {isFinalWorld ? " · campaign complete" : " · bonus cleared"}
           </span>
         </p>
       </div>
@@ -43,7 +44,7 @@ export default function MasteryGate({ world, cleared, mastered, className }) {
           World {world.index} Mastery Challenge
         </span>
         <span className="block text-[10.5px] font-bold leading-tight text-[#7A5B00]">
-          {isFinalWorld ? "Final assessment · required to finish the campaign" : `Required to open World ${world.index + 1}`}
+          Bonus assessment · optional
         </span>
       </span>
       <ChevronRight
