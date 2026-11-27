@@ -89,7 +89,7 @@ export default function MemoryViewer({ snapshots }) {
   };
 
   return (
-    <div className="rounded-[24px] border-2 border-frame bg-card p-4 shadow-[0_4px_0_hsl(var(--frame))]">
+    <div className="quest-card p-4">
       <div className="flex items-center gap-2">
         <span className="grid h-8 w-8 place-items-center rounded-xl bg-grape/16 text-grape">
           <Sparkles className="h-4 w-4" fill="currentColor" strokeWidth={0} />

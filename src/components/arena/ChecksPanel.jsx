@@ -1,4 +1,4 @@
-import { Check, Coins, Star, Target, X } from "lucide-react";
+import { Check, Coins, Star, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function label(check) {
@@ -16,13 +16,13 @@ function label(check) {
 
 export default function ChecksPanel({ mission, evaluation }) {
   return (
-    <div className="rounded-[24px] border-2 border-frame bg-card p-4 shadow-[0_4px_0_hsl(var(--frame))]">
+    <div className="quest-card p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-xl bg-brand-tint text-brand-ink">
-            <Target className="h-4 w-4" strokeWidth={2.5} />
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-[#58CC02] text-white shadow-[0_2px_0_#46A302]">
+            <Star className="h-4 w-4" fill="currentColor" strokeWidth={0} />
           </span>
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-soft">Quest goals</p>
+          <p className="text-[12px] font-extrabold uppercase tracking-[0.14em] text-ink">Quest goals</p>
         </div>
         {evaluation && (
           <span
@@ -66,13 +66,13 @@ export default function ChecksPanel({ mission, evaluation }) {
       </ul>
 
       <div className="mt-3 flex items-center justify-between border-t-2 border-frame pt-3">
-        <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-soft">Reward</span>
+        <span className="text-[12px] font-extrabold uppercase tracking-[0.14em] text-ink">Reward</span>
         <span className="flex items-center gap-2">
-          <span className="flex items-center gap-1 rounded-full bg-aqua/15 px-2 py-0.5 text-[10.5px] font-extrabold text-aqua">
+          <span className="flex items-center gap-1 rounded-full bg-aqua/15 px-2.5 py-1 text-[12px] font-extrabold text-aqua">
             <Star className="h-3 w-3" fill="currentColor" strokeWidth={0} />
             {mission.reward.xp} XP
           </span>
-          <span className="flex items-center gap-1 rounded-full bg-tangerine/15 px-2 py-0.5 text-[10.5px] font-extrabold text-tangerine-ink">
+          <span className="flex items-center gap-1 rounded-full bg-tangerine/15 px-2.5 py-1 text-[12px] font-extrabold text-tangerine-ink">
             <Coins className="h-3 w-3" fill="currentColor" strokeWidth={0} />
             {mission.reward.coins}
           </span>

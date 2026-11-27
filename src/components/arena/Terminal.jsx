@@ -2,7 +2,7 @@ import { ScrollText, TriangleAlert } from "lucide-react";
 
 export default function Terminal({ result }) {
   return (
-    <div className="overflow-hidden rounded-[24px] border-2 border-frame bg-card shadow-[0_4px_0_hsl(var(--frame))]">
+    <div className="quest-card overflow-hidden">
       <div className="flex items-center gap-2 border-b-2 border-frame px-3.5 py-2.5">
         <span className="grid h-7 w-7 place-items-center rounded-xl bg-tangerine/15 text-tangerine-ink">
           <ScrollText className="h-4 w-4" strokeWidth={2.5} />
