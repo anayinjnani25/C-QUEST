@@ -8,7 +8,7 @@ import {
   clearLegacyStore,
 } from "@/lib/game/storage";
 import { fetchStore, removeSave, saveSettings, storeDraft, upsertSave, upsertSaves } from "@/lib/game/cloud";
-import { applyCompletion } from "@/lib/game/achievements";
+import { applyBossPart, applyCompletion } from "@/lib/game/achievements";
 import { applyMastery } from "@/lib/game/mastery";
 import { setSoundEnabled } from "@/lib/game/sound";
 import { useAuth } from "@/lib/auth/AuthProvider";
@@ -135,6 +135,16 @@ export function GameProvider({ children }) {
     [activeSave]
   );
 
+  const completeBossPart = useCallback(
+    (missionId, partIndex) => {
+      if (!activeSave) return;
+      const save = applyBossPart(activeSave, missionId, partIndex);
+      if (save === activeSave) return;
+      setStore((prev) => ({ ...prev, saves: prev.saves.map((s) => (s.id === save.id ? save : s)) }));
+    },
+    [activeSave]
+  );
+
   const completeMastery = useCallback(
     (challenge, payload) => {
       if (!activeSave) return { newly: [], already: true };
@@ -178,6 +188,7 @@ export function GameProvider({ children }) {
       selectSave,
       deleteSave,
       completeMission,
+      completeBossPart,
       completeMastery,
       importSave,
       toggleSound,
@@ -193,6 +204,7 @@ export function GameProvider({ children }) {
       selectSave,
       deleteSave,
       completeMission,
+      completeBossPart,
       completeMastery,
       importSave,
       toggleSound,

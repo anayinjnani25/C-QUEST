@@ -803,12 +803,12 @@ function ProfilePage() {
                     {masteredWorlds === WORLDS.length
                       ? "Every world mastered"
                       : completed === TOTAL_MISSIONS
-                        ? "Quests done — clear the Mastery Challenges"
+                        ? "Quests done — try the bonus Mastery Challenges"
                         : "Keep the trail moving"}
                   </p>
                   <p className="mt-1 text-[12.5px] font-medium leading-relaxed text-[var(--cb-accent-muted)]">
                     {completed} of {TOTAL_MISSIONS} quests cleared, {masteredWorlds} of {WORLDS.length} World
-                    Mastery Challenges passed. {completed === TOTAL_MISSIONS ? "Only mastery gates remain." : "Skipping a topic still needs a passed skip test."}
+                    Mastery Challenges passed. {completed === TOTAL_MISSIONS ? "Only the bonus mastery challenges remain." : "Beat a world's boss quest to open the next world."}
                   </p>
 
                   <Link
@@ -1047,8 +1047,8 @@ function ProfilePage() {
               })}
 
               <p className="pt-2 text-[11.5px] font-medium leading-relaxed text-[var(--cb-muted)]">
-                A world's Mastery Challenge must be passed before the next world opens, whether its quests
-                were cleared normally or by passing a skip test.
+                Beating a world's boss quest, all five of its programs, opens the next world. Its Mastery
+                Challenge is an optional bonus assessment.
               </p>
             </div>
           ) : null}

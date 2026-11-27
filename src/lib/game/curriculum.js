@@ -1,3 +1,5 @@
+import { BOSS_PARTS } from "@/lib/game/bossQuests";
+
 const shell = (task, prelude = "") =>
   `#include <stdio.h>\n${prelude}\nint main() {\n  // ${task}\n  \n  return 0;\n}\n`;
 
@@ -1073,8 +1075,28 @@ export const WORLDS = [
   },
 ];
 
+// A boss quest is five programs: its own program first, then the ones in bossQuests.js.
+function bossParts(mission) {
+  const extra = BOSS_PARTS[mission.id];
+  if (!mission.boss || !extra) return undefined;
+  const first = {
+    title: mission.title.replace(/^BOSS:\s*/, ""),
+    objective: mission.objective,
+    starter: mission.starter,
+    solution: mission.solution,
+    checks: mission.checks,
+    hints: mission.hints,
+  };
+  return [first, ...extra];
+}
+
 export const MISSIONS = WORLDS.flatMap((world) =>
-  world.missions.map((mission) => ({ ...mission, world: world.id, worldName: world.name }))
+  world.missions.map((mission) => ({
+    ...mission,
+    world: world.id,
+    worldName: world.name,
+    parts: bossParts(mission),
+  }))
 );
 
 export function missionById(id) {
@@ -1097,16 +1119,26 @@ export function missionNumber(mission) {
 }
 
 // Mastery challenge keys are shared with src/lib/game/mastery.js: `world-w1`,
-// `topic-w1m4`. Kept as literals here so this module stays import-free.
+// `topic-w1m4`. Kept as literals here so this module does not import mastery.js.
 export function isWorldMastered(worldId, progress) {
   return Boolean(progress?.mastery?.[`world-${worldId}`]);
 }
 
-// A world counts as complete when its Mastery Challenge is passed, or when the player
-// skipped it by beating the boss quest before clearing the other quests
-// (recorded in progress.skippedWorlds when that boss is completed).
+export function bossOf(worldId) {
+  return MISSIONS.find((m) => m.world === worldId && m.boss) || null;
+}
+
+// Beating a world's boss quest completes the world and opens the next one, whether
+// the other quests were cleared first or not. Derived from progress.missions so older
+// saves that beat a boss before this rule existed open the next world too. A passed
+// Mastery Challenge, or progress.skippedWorlds from earlier versions, also counts.
 export function isWorldComplete(worldId, progress) {
-  return isWorldMastered(worldId, progress) || Boolean(progress?.skippedWorlds?.[worldId]);
+  const boss = bossOf(worldId);
+  return (
+    Boolean(boss && progress?.missions?.[boss.id]) ||
+    isWorldMastered(worldId, progress) ||
+    Boolean(progress?.skippedWorlds?.[worldId])
+  );
 }
 
 // Every world's map can be viewed. Its quests open only once the previous world is complete.
@@ -1133,10 +1165,11 @@ export function isBossSkip(missionId, progress) {
   return world.missions.some((m) => m.id !== missionId && !progress?.missions?.[m.id]);
 }
 
-// A lesson can be challenged once it is on the trail and not yet cleared.
+// A lesson can be challenged once it is on the trail and not yet cleared. A boss
+// quest can't: its five programs are what open the next world.
 export function canSkipMission(missionId, progress) {
   const mission = missionById(missionId);
-  if (!mission) return false;
+  if (!mission || mission.boss) return false;
   if (progress?.missions?.[missionId]) return false;
   if (progress?.mastery?.[`topic-${missionId}`]) return false;
   return isMissionUnlocked(missionId, progress);

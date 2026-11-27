@@ -16,7 +16,6 @@ import {
   isWorldComplete,
   isWorldMastered,
   isWorldUnlocked,
-  worldCleared,
 } from "@/lib/game/curriculum";
 import { WORLD_ART, WORLD_ART_FALLBACK } from "@/lib/game/worldArt";
 
@@ -26,21 +25,17 @@ export const Route = createFileRoute("/map")({
   component: MapPage,
 });
 
-function TipCard({ world, locked, cleared, complete }) {
+function TipCard({ world, locked, complete }) {
   const isFinalWorld = world.index === WORLDS[WORLDS.length - 1].index;
   const text = locked
-    ? `Complete World ${world.index - 1} to play these quests.`
+    ? `Beat the World ${world.index - 1} boss quest to play these quests.`
     : complete
       ? isFinalWorld
         ? "World complete. You've finished the campaign!"
         : "World complete. The next world is open!"
-      : cleared
-        ? isFinalWorld
-          ? "Pass the Mastery Challenge to finish the campaign!"
-          : "Pass the Mastery Challenge to unlock the next world!"
-        : isFinalWorld
-          ? "Complete all quests in this world to finish the campaign!"
-          : "Complete all quests in this world to unlock the next world!";
+      : isFinalWorld
+        ? "Beat the boss quest's 5 programs to finish the campaign!"
+        : "Beat the boss quest's 5 programs to unlock the next world!";
 
   return (
     <div className="pointer-events-auto flex max-w-[280px] items-center gap-3 rounded-[18px] bg-[#FBF3DF]/95 px-4 py-3 shadow-[0_8px_20px_rgba(30,40,20,0.22)]">
@@ -76,7 +71,6 @@ function MapPage() {
   const world = WORLDS.find((w) => w.id === pickedWorldId) || focus || WORLDS[0];
   const art = WORLD_ART[world.id] || WORLD_ART_FALLBACK;
   const unlocked = isWorldUnlocked(world.id, progress);
-  const cleared = worldCleared(world.id, progress);
   const mastered = isWorldMastered(world.id, progress);
   const complete = isWorldComplete(world.id, progress);
 
@@ -112,7 +106,7 @@ function MapPage() {
         />
 
         <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 hidden justify-center px-4 sm:flex">
-          <MasteryGate world={world} cleared={cleared} mastered={mastered} />
+          <MasteryGate world={world} complete={complete} mastered={mastered} />
         </div>
 
         <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 hidden items-end justify-between px-4 sm:flex">
@@ -125,7 +119,7 @@ function MapPage() {
             Back to Worlds
           </button>
 
-          <TipCard world={world} locked={!unlocked} cleared={cleared} complete={complete} />
+          <TipCard world={world} locked={!unlocked} complete={complete} />
         </div>
 
         <button
@@ -148,8 +142,8 @@ function MapPage() {
       </div>
 
       <div className="relative z-20 mx-3 mb-6 mt-3 flex flex-col items-center gap-2 sm:hidden">
-        <MasteryGate world={world} cleared={cleared} mastered={mastered} />
-        <TipCard world={world} locked={!unlocked} cleared={cleared} complete={complete} />
+        <MasteryGate world={world} complete={complete} mastered={mastered} />
+        <TipCard world={world} locked={!unlocked} complete={complete} />
       </div>
 
       <WorldPicker
