@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Code2, CornerDownLeft } from "lucide-react";
+import { BookOpen, Code2, CornerDownLeft, Play } from "lucide-react";
 import { highlightC } from "@/lib/c/highlight";
 import { cn } from "@/lib/utils";
 
@@ -67,17 +67,18 @@ export default function CodeEditor({ value, onChange, onRun }) {
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-[24px] border-2 bg-card transition-all duration-200",
-        focused ? "border-brand shadow-[0_4px_0_#C6E9A8]" : "border-frame shadow-[0_4px_0_hsl(var(--frame))]"
+        "quest-card overflow-hidden transition-colors duration-200",
+        focused && "!border-[#8cc63f]/70"
       )}
     >
       <div className="flex items-center gap-2 border-b-2 border-frame px-3.5 py-2.5">
-        <span className="grid h-7 w-7 place-items-center rounded-xl bg-brand-tint text-brand-ink">
-          <Code2 className="h-4 w-4" strokeWidth={2.5} />
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-[#58CC02]/15 text-[#58CC02]">
+          <Code2 className="h-4 w-4" strokeWidth={2.8} />
         </span>
-        <span className="text-[12px] font-extrabold text-ink">main.c</span>
-        <span className="ml-auto rounded-full bg-tile px-2 py-0.5 text-[9.5px] font-extrabold uppercase tracking-widest text-ink-faint">
-          spellbook
+        <span className="text-[14px] font-extrabold text-ink">main.c</span>
+        <span className="ml-auto flex items-center gap-1.5 rounded-full border-2 border-frame bg-tile px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-ink-soft">
+          <BookOpen className="h-3.5 w-3.5" strokeWidth={2.5} />
+          Spellbook
         </span>
       </div>
 
@@ -112,7 +113,7 @@ export default function CodeEditor({ value, onChange, onRun }) {
             autoCorrect="off"
             wrap="off"
             aria-label="C source code"
-            className="thin-scroll relative h-[440px] w-full resize-none overflow-auto whitespace-pre bg-transparent px-3 py-3 font-mono text-[13px] leading-6 text-transparent caret-[#58CC02] outline-none selection:bg-[#C6E9A8] selection:text-transparent"
+            className="thin-scroll relative h-[440px] w-full resize-none overflow-auto whitespace-pre bg-transparent px-3 py-3 font-mono text-[13px] leading-6 text-transparent caret-[#8cc63f] outline-none selection:bg-[#C6E9A8] selection:text-transparent"
           />
         </div>
       </div>
@@ -122,7 +123,14 @@ export default function CodeEditor({ value, onChange, onRun }) {
           <CornerDownLeft className="h-3 w-3" strokeWidth={3} />
           Tab · 2 spaces
         </span>
-        <span className="text-[10px] font-extrabold uppercase tracking-widest text-ink-faint">Ctrl + Enter to run</span>
+        <button
+          type="button"
+          onClick={onRun}
+          className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-ink-faint transition-colors hover:text-gold-ink"
+        >
+          Ctrl + Enter to run
+          <Play className="h-3.5 w-3.5 text-gold" fill="currentColor" strokeWidth={0} />
+        </button>
       </div>
     </div>
   );

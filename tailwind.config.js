@@ -56,6 +56,8 @@ export default {
   			tangerine: 'hsl(var(--tangerine) / <alpha-value>)',
   			coral: 'hsl(var(--coral) / <alpha-value>)',
   			grape: 'hsl(var(--grape) / <alpha-value>)',
+  			gold: 'hsl(var(--gold) / <alpha-value>)',
+  			'gold-ink': 'hsl(var(--gold-ink) / <alpha-value>)',
   			ink: 'hsl(var(--ink) / <alpha-value>)',
   			'ink-soft': 'hsl(var(--ink-soft) / <alpha-value>)',
   			'ink-faint': 'hsl(var(--ink-faint) / <alpha-value>)',

@@ -1,4 +1,4 @@
-import { BookOpen, Lightbulb, Quote, Sparkles, Target, Zap } from "lucide-react";
+import { BookOpenText, Crown, Lightbulb, Quote, Skull, Sparkles, Target, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function BriefingPanel({ mission, hintsUsed, onRevealHint, skippable = false, onSkip }) {
@@ -8,7 +8,7 @@ export default function BriefingPanel({ mission, hintsUsed, onRevealHint, skippa
   return (
     <div className="space-y-3">
       {skippable ? (
-        <div className="rounded-[24px] border-2 border-aqua/45 bg-aqua/10 p-4">
+        <div className="rounded-[22px] border-2 border-aqua/45 bg-aqua/10 p-4">
           <div className="flex items-center gap-2">
             <span className="grid h-8 w-8 place-items-center rounded-xl bg-aqua/15 text-aqua">
               <Zap className="h-4 w-4" fill="currentColor" strokeWidth={0} />
@@ -32,51 +32,58 @@ export default function BriefingPanel({ mission, hintsUsed, onRevealHint, skippa
         </div>
       ) : null}
 
-      <div className="rounded-[24px] border-2 border-frame bg-card p-4 shadow-[0_3px_0_hsl(var(--frame))]">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-brand-tint px-2.5 py-1 text-[9.5px] font-extrabold uppercase tracking-widest text-brand-ink">
+      <div className="quest-card p-4">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="rounded-full bg-[#a3e635] px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-[#1f3305] shadow-[0_2px_0_#6a9a1a]">
             {mission.worldName}
           </span>
-          <span className="text-[10px] font-extrabold uppercase tracking-widest text-ink-soft">
+          <span className="rounded-full bg-tile px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest text-ink-soft">
             Quest {String(mission.order).padStart(2, "0")}
           </span>
           {mission.boss && (
-            <span className="rounded-full bg-grape/16 px-2.5 py-1 text-[9.5px] font-extrabold uppercase tracking-widest text-grape">
+            <span className="flex items-center gap-1 rounded-full bg-coral/15 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest text-coral">
               Boss
+              <Skull className="h-3 w-3" strokeWidth={2.8} />
             </span>
           )}
         </div>
 
-        <h1 className="mt-2.5 text-[22px] font-extrabold leading-tight text-ink">{mission.title}</h1>
-        <p className="mt-1 text-[12px] font-bold text-ink-soft">{mission.tagline}</p>
+        <h1 className="mt-3 flex items-start gap-2 font-display text-[22px] font-extrabold leading-tight text-ink">
+          {mission.boss ? (
+            <Crown className="mt-1 h-5 w-5 shrink-0 text-gold" fill="currentColor" strokeWidth={0} />
+          ) : null}
+          <span>{mission.title}</span>
+        </h1>
+        <p className="mt-1 text-[13px] font-bold text-ink-soft">{mission.tagline}</p>
 
-        <p className="mt-4 rounded-2xl border-l-4 border-brand bg-brand/8 px-3.5 py-3 text-[12.5px] font-semibold leading-relaxed text-ink-soft">
-          {mission.story}
-        </p>
-      </div>
-
-      <div className="rounded-[24px] border-2 border-frame bg-card p-4 shadow-[0_3px_0_hsl(var(--frame))]">
-        <div className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-xl bg-aqua/15 text-aqua">
-            <Target className="h-4 w-4" strokeWidth={2.5} />
-          </span>
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-soft">Your goal</p>
+        <div className="parchment mt-3.5 flex gap-3 rounded-2xl border-l-[5px] border-[#8cc63f] px-3.5 py-3 shadow-[inset_0_1px_0_rgb(255_255_255/0.5)]">
+          <BookOpenText className="mt-0.5 h-5 w-5 shrink-0 opacity-70" strokeWidth={2.2} />
+          <p className="text-[12.5px] font-semibold leading-relaxed">{mission.story}</p>
         </div>
-        <p className="mt-2.5 text-[12.5px] font-semibold leading-relaxed text-ink">{mission.objective}</p>
       </div>
 
-      <div className="rounded-[24px] border-2 border-frame bg-card p-4 shadow-[0_3px_0_hsl(var(--frame))]">
-        <div className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-xl bg-grape/16 text-grape">
-            <BookOpen className="h-4 w-4" strokeWidth={2.5} />
+      <div className="quest-card p-4">
+        <div className="flex items-center gap-2.5">
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-gold/15 text-gold">
+            <Target className="h-5 w-5" strokeWidth={2.5} />
           </span>
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-soft">What you'll learn</p>
+          <p className="text-[12px] font-extrabold uppercase tracking-[0.14em] text-gold-ink">Your goal</p>
+        </div>
+        <p className="mt-2.5 text-[13px] font-semibold leading-relaxed text-ink">{mission.objective}</p>
+      </div>
+
+      <div className="quest-card p-4">
+        <div className="flex items-center gap-2.5">
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-gold/15 text-gold">
+            <Lightbulb className="h-5 w-5" fill="currentColor" strokeWidth={0} />
+          </span>
+          <p className="text-[12px] font-extrabold uppercase tracking-[0.14em] text-gold-ink">What you'll learn</p>
         </div>
         <h2 className="mt-2.5 text-[15px] font-extrabold text-ink">{mission.concept.title}</h2>
         <ul className="mt-2.5 space-y-2">
           {mission.concept.points.map((point) => (
             <li key={point} className="flex gap-2 text-[12px] font-semibold leading-relaxed text-ink-soft">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#58CC02]" />
+              <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#8cc63f]" />
               <span>{point}</span>
             </li>
           ))}
@@ -93,7 +100,7 @@ export default function BriefingPanel({ mission, hintsUsed, onRevealHint, skippa
       </div>
 
       {mission.fieldNote && (
-        <div className="rounded-[24px] border-2 border-aqua/45 bg-aqua/10 p-4">
+        <div className="rounded-[22px] border-2 border-aqua/45 bg-aqua/10 p-4">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-aqua" fill="currentColor" strokeWidth={0} />
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-aqua">Field note</p>
@@ -102,7 +109,7 @@ export default function BriefingPanel({ mission, hintsUsed, onRevealHint, skippa
         </div>
       )}
 
-      <div className="rounded-[24px] border-2 border-frame bg-card p-4 shadow-[0_3px_0_hsl(var(--frame))]">
+      <div className="quest-card p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="grid h-8 w-8 place-items-center rounded-xl bg-sun/15 text-sun-ink">
