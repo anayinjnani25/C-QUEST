@@ -187,21 +187,17 @@ function HeroStep({ playerName, heroId, onPick, onBack, onConfirm, returning }) 
               )}
               style={{ "--hero": hero.color }}
             >
-              <div
-                className="relative h-[180px] overflow-hidden sm:h-[230px]"
-                style={{
-                  background: `radial-gradient(120% 80% at 50% 100%, ${hero.color}55, transparent 70%), linear-gradient(180deg, hsl(var(--tile)), hsl(var(--card)))`,
-                }}
-              >
+              <div className="relative h-[180px] overflow-hidden bg-tile sm:h-[230px]">
                 <img
-                  src={hero.image}
+                  src={hero.card}
                   alt=""
                   loading={i < 3 ? "eager" : "lazy"}
                   className={cn(
-                    "absolute inset-x-0 bottom-0 mx-auto h-[94%] w-full object-contain object-bottom drop-shadow-[0_6px_8px_rgb(0_0_0/0.3)] transition-transform duration-300",
-                    selected ? "scale-[1.04]" : "group-hover:scale-[1.03]"
+                    "absolute inset-0 h-full w-full object-cover object-center transition-transform duration-300",
+                    selected ? "scale-[1.05]" : "group-hover:scale-[1.04]"
                   )}
                 />
+                <span className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-transparent" />
                 <span className="absolute left-2.5 top-2.5 rounded-full bg-black/55 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-white">
                   Hero {i + 1}
                 </span>
