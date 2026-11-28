@@ -28,7 +28,7 @@ export const Route = createFileRoute("/map")({
 function TipCard({ world, locked, complete }) {
   const isFinalWorld = world.index === WORLDS[WORLDS.length - 1].index;
   const text = locked
-    ? `Beat the World ${world.index - 1} boss quest to play these quests.`
+    ? `Beat the World ${world.index - 1} boss quest to play these quests. This world's boss quest is open now!`
     : complete
       ? isFinalWorld
         ? "World complete. You've finished the campaign!"

@@ -1141,7 +1141,8 @@ export function isWorldComplete(worldId, progress) {
   );
 }
 
-// Every world's map can be viewed. Its quests open only once the previous world is complete.
+// Every world's map can be viewed. Its quests (other than the boss quest, which is always open)
+// open only once the previous world is complete.
 export function isWorldUnlocked(worldId, progress) {
   const index = WORLDS.findIndex((w) => w.id === worldId);
   if (index <= 0) return true;
@@ -1183,11 +1184,14 @@ export function worldCleared(worldId, progress) {
 export function isMissionUnlocked(missionId, progress) {
   const mission = missionById(missionId);
   if (!mission) return false;
+  // Every world's boss quest is always open, even in a world that isn't open yet: beating it
+  // completes that world and opens the next one. The world's other quests still wait for the
+  // previous world to be complete.
+  if (mission.boss) return true;
   if (!isWorldUnlocked(mission.world, progress)) return false;
   const world = worldById(mission.world);
   const index = world.missions.findIndex((m) => m.id === missionId);
-  // The boss is always open in an open world: beating it early skips the world.
-  if (index === 0 || mission.boss) return true;
+  if (index === 0) return true;
   return Boolean(progress?.missions?.[world.missions[index - 1].id]);
 }
 
