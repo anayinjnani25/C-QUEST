@@ -1,46 +1,5 @@
-// Original SVG sprites for the boss battle. The hero faces right; every boss faces left.
+// Original SVG sprites for the bosses, who all face left toward the player's hero.
 // Each sprite draws inside its own viewBox and leaves movement to the CSS classes in index.css.
-
-export function HeroSprite() {
-  return (
-    <svg viewBox="0 0 110 120" className="h-full w-full overflow-visible" aria-hidden>
-      <defs>
-        <linearGradient id="hero-blade" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#ffffff" />
-          <stop offset="1" stopColor="#9fb4c8" />
-        </linearGradient>
-      </defs>
-      {/* cape */}
-      <path d="M37 42 Q20 72 25 110 L50 106 Q44 74 49 44Z" fill="#8c2433" />
-      <path d="M37 42 Q26 70 29 104 L35 104 Q33 74 43 46Z" fill="#6d1a27" />
-      {/* legs and boots */}
-      <rect x="39" y="82" width="8" height="25" rx="3" fill="#2a2236" />
-      <rect x="52" y="82" width="8" height="25" rx="3" fill="#342a44" />
-      <path d="M36 104h12v7H34z" fill="#4a3322" />
-      <path d="M51 104h12l3 7H51z" fill="#5a3e29" />
-      {/* tunic */}
-      <path d="M37 48 Q49 41 62 48 L65 87 Q50 92 35 87Z" fill="#2f5f8f" />
-      <path d="M49 46 L51 89" stroke="#24496f" strokeWidth="2" />
-      <rect x="36" y="70" width="29" height="5" rx="1.5" fill="#c99a3b" />
-      <rect x="47.5" y="69" width="6" height="7" rx="1.5" fill="#f1d27a" />
-      {/* shield on the back arm */}
-      <path d="M30 54 Q30 50 34 50 L44 50 Q48 50 48 54 L47 66 Q45 74 39 77 Q33 74 31 66Z" fill="#7a5530" stroke="#c99a3b" strokeWidth="2" />
-      <path d="M39 54 L39 72 M33 61 L45 61" stroke="#c99a3b" strokeWidth="1.8" />
-      {/* head */}
-      <path d="M39 31 Q47 11 62 25 L65 44 Q52 51 39 45Z" fill="#3c4d68" />
-      <path d="M49 29 Q61 28 62 37 Q58 45 50 43Z" fill="#f0c49b" />
-      <circle cx="57.5" cy="34.5" r="1.7" fill="#1c1c22" />
-      <path d="M41 31 Q48 22 60 26" stroke="#53668a" strokeWidth="2" fill="none" />
-      {/* sword arm: swings on attack */}
-      <g className="bt-sword">
-        <path d="M58 51 L71 61" stroke="#f0c49b" strokeWidth="6" strokeLinecap="round" />
-        <path d="M70 58 L101 25 L105 29 L74 62Z" fill="url(#hero-blade)" />
-        <path d="M66 55 L78 66" stroke="#c99a3b" strokeWidth="4.5" strokeLinecap="round" />
-        <circle cx="70" cy="62" r="3" fill="#7a5530" />
-      </g>
-    </svg>
-  );
-}
 
 // World 1: a stone sentinel with a cracked old terminal for a head.
 function FlickerSentinel() {

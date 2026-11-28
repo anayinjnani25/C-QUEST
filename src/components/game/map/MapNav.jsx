@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Home, MapPin, Moon, Settings, Star, Sun, Trophy, User, Volume2, VolumeX } from "lucide-react";
+import HeroAvatar from "@/components/game/HeroAvatar";
 import { useGame } from "@/lib/game/GameProvider";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/lib/theme/ThemeProvider";
@@ -61,7 +62,7 @@ function SettingsMenu({ soundOn, toggleSound }) {
 }
 
 export default function MapNav() {
-  const { progress, level, soundOn, toggleSound } = useGame();
+  const { activeSave, progress, level, soundOn, toggleSound } = useGame();
 
   return (
     <header className="pointer-events-none relative z-40 flex items-center gap-2.5 px-3 pt-3 sm:gap-3 sm:px-4 sm:pt-4">
@@ -109,6 +110,13 @@ export default function MapNav() {
         </span>
 
         <span className="flex items-center gap-2 rounded-full bg-card py-1.5 pl-1.5 pr-3 shadow-[0_4px_14px_rgba(38,60,92,0.16)]">
+          {activeSave?.hero && (
+            <HeroAvatar
+              heroId={activeSave.hero}
+              label={activeSave.name}
+              className="h-8 w-8 rounded-full"
+            />
+          )}
           <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-[#F2B800] bg-[radial-gradient(circle_at_40%_30%,#FFE36B,#FFC21A)] text-[10.5px] font-extrabold leading-none text-[#5C4300]">
             Lv.{level.level}
           </span>

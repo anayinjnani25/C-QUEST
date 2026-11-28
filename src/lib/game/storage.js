@@ -1,4 +1,5 @@
 import { fetchDraft, storeDraft } from "@/lib/game/cloud";
+import { isHeroId } from "@/lib/game/heroes";
 
 export const TOTAL_MISSIONS = 30;
 export const STORE_KEY = "cquest.store.v1";
@@ -60,12 +61,13 @@ export function emptyProgress() {
   };
 }
 
-export function newSave(name, glyph) {
+export function newSave(name, hero) {
   const id = `save-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
   return {
     id,
     name: name || "Operator",
-    glyph: glyph || "✦",
+    glyph: "✦",
+    hero: isHeroId(hero) ? hero : null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     progress: emptyProgress(),
@@ -156,6 +158,7 @@ export function parseImportedSave(text) {
     id: `save-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
     name: save.name || "Imported",
     glyph: save.glyph || "✦",
+    hero: isHeroId(save.hero) ? save.hero : null,
     createdAt: save.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     progress: { ...emptyProgress(), ...save.progress },

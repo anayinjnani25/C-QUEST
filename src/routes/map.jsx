@@ -52,11 +52,13 @@ function MapPage() {
   const [pickedWorldId, setPickedWorldId] = useState(null);
   const [pickerOpen, setPickerOpen] = useState(false);
 
+  // Saves from before heroes existed pick one before playing on.
   useEffect(() => {
     if (ready && !activeSave) navigate({ to: "/" });
+    else if (ready && !activeSave.hero) navigate({ to: "/start" });
   }, [ready, activeSave, navigate]);
 
-  if (!ready || !activeSave) {
+  if (!ready || !activeSave || !activeSave.hero) {
     return (
       <div className="grid min-h-screen place-items-center bg-[#8ED8F8] dark:bg-[#0F1A20]">
         <p className="text-[12px] font-extrabold uppercase tracking-[0.18em] text-ink">

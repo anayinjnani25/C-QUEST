@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, LogOut, Play, RotateCcw, Sparkles } from "lucide-react";
-import SaveSlots from "@/components/game/SaveSlots";
-import NewRunDialog from "@/components/game/NewRunDialog";
+import { ArrowRight, LogOut, Play, RotateCcw, Sparkles, Star } from "lucide-react";
+import HeroAvatar from "@/components/game/HeroAvatar";
 import ThemeToggle from "@/components/game/ThemeToggle";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { useGame } from "@/lib/game/GameProvider";
+import { HEROES, heroById } from "@/lib/game/heroes";
+import { TOTAL_MISSIONS, completedCount, levelFromXp } from "@/lib/game/storage";
 import { runC } from "@/lib/c/engine";
 import { highlightC } from "@/lib/c/highlight";
 
@@ -56,27 +57,22 @@ const NOTES = [
 const monoLabel = "font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink-soft";
 
 function TitleScreen() {
-  const { ready, saves, activeId, createSave, selectSave, deleteSave } = useGame();
+  const { ready, saves, activeId, selectSave } = useGame();
   const { user, loading: authLoading, configured, signOut } = useAuth();
   const signedIn = Boolean(user);
   const navigate = useNavigate();
-  const [dialogOpen, setDialogOpen] = useState(false);
 
+  // C is the only adventure for now, so each player has one save and there is no save picker.
+  // Older accounts with several saves carry on with the active (or most recent) one.
   const latest = saves.find((s) => s.id === activeId) || saves[0] || null;
 
-  const handleCreate = (name, glyph) => {
-    createSave(name, glyph);
-    navigate({ to: "/map" });
-  };
-
-  const handleSelect = (id) => {
-    selectSave(id);
-    navigate({ to: "/map" });
-  };
-
   const handleContinue = () => {
-    if (latest) handleSelect(latest.id);
-    else setDialogOpen(true);
+    if (!latest) {
+      navigate({ to: "/start" });
+      return;
+    }
+    selectSave(latest.id);
+    navigate({ to: latest.hero ? "/map" : "/start" });
   };
 
   return (
@@ -146,7 +142,6 @@ function TitleScreen() {
                 {!signedIn ? (
                   <GoogleSignInButton />
                 ) : (
-                <>
                 <button
                   type="button"
                   onClick={handleContinue}
@@ -156,10 +151,6 @@ function TitleScreen() {
                   {latest ? "Continue adventure" : "Start playing"}
                   <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" strokeWidth={3} />
                 </button>
-                <a href="#slots" className="btn-ghost inline-flex h-14 items-center px-6 text-[15px]">
-                  {latest ? "Switch save" : "See the campaign"}
-                </a>
-                </>
                 )}
               </div>
               {!configured && (
@@ -175,24 +166,12 @@ function TitleScreen() {
                     <dd className="text-ink-soft">{label}</dd>
                   </div>
                 ))}
-                <div className="flex items-baseline gap-2">
-                  <dt className="text-[15px] font-bold tracking-normal text-ink">
-                    {ready ? String(saves.length).padStart(2, "0") : "--"}
-                  </dt>
-                  <dd className="text-ink-soft">saves</dd>
-                </div>
               </dl>
             </div>
 
             <div className="anim-fade-up [animation-delay:90ms]">
               {signedIn ? (
-                <SaveSlots
-                  saves={ready ? saves : []}
-                  activeId={activeId}
-                  onSelect={handleSelect}
-                  onNewRun={() => setDialogOpen(true)}
-                  onDelete={deleteSave}
-                />
+                <PlayerCard save={ready ? latest : null} ready={ready} onPlay={handleContinue} />
               ) : (
                 <SignInCard loading={authLoading} />
               )}
@@ -219,9 +198,80 @@ function TitleScreen() {
           </p>
         </footer>
       </div>
-
-      <NewRunDialog open={dialogOpen} onOpenChange={setDialogOpen} onCreate={handleCreate} />
     </div>
+  );
+}
+
+function PlayerCard({ save, ready, onPlay }) {
+  if (!save) {
+    return (
+      <section className="rounded-[26px] border-2 border-frame bg-card p-6 shadow-[0_5px_0_hsl(var(--frame))] sm:p-7">
+        <p className={monoLabel}>your adventure · C programming</p>
+        <h2 className="mt-2 text-[24px] font-extrabold leading-tight text-ink">Pick a name, pick a hero</h2>
+        <p className="mt-2 text-[13px] font-semibold leading-relaxed text-ink-soft">
+          Choose one of six heroes to carry into every boss battle. Same power for all of them; pick the style you like.
+        </p>
+        <div className="mt-4 flex -space-x-2">
+          {HEROES.map(({ id }) => (
+            <HeroAvatar key={id} heroId={id} className="h-11 w-11 rounded-full border-2 border-card" />
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={onPlay}
+          disabled={!ready}
+          className="btn-game mt-5 flex h-12 w-full items-center justify-center gap-2 text-[15px] disabled:opacity-60"
+        >
+          Start playing
+          <ArrowRight className="h-5 w-5" strokeWidth={3} />
+        </button>
+      </section>
+    );
+  }
+
+  const hero = save.hero ? heroById(save.hero) : null;
+  const done = completedCount(save.progress);
+  const pct = Math.round((done / TOTAL_MISSIONS) * 100);
+
+  return (
+    <section className="rounded-[26px] border-2 border-frame bg-card p-5 shadow-[0_5px_0_hsl(var(--frame))] sm:p-6">
+      <p className={monoLabel}>your adventure · C programming</p>
+      <div className="mt-3 flex items-center gap-4">
+        {hero ? (
+          <HeroAvatar heroId={hero.id} label={hero.name} className="h-20 w-20 rounded-[22px] border-2 border-frame" />
+        ) : (
+          <span className="grid h-20 w-20 shrink-0 place-items-center rounded-[22px] border-2 border-dashed border-frame text-[28px] text-ink-faint">
+            ?
+          </span>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[22px] font-extrabold leading-tight text-ink">{save.name}</p>
+          <p className="mt-0.5 truncate text-[12.5px] font-semibold text-ink-soft">
+            {hero ? `${hero.emoji} ${hero.name}` : "No hero chosen yet"} · Lv {levelFromXp(save.progress?.xp || 0)}
+          </p>
+        </div>
+      </div>
+      <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-track">
+        <div className="h-full rounded-full bg-[#58CC02]" style={{ width: `${Math.max(pct, 4)}%` }} />
+      </div>
+      <div className="mt-1.5 flex items-center gap-3 text-[11.5px] font-bold text-ink-soft">
+        <span>
+          {done}/{TOTAL_MISSIONS} quests
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <Star className="h-3.5 w-3.5 text-[#FFD900]" fill="currentColor" strokeWidth={0} />
+          {save.progress?.stars || 0}
+        </span>
+      </div>
+      <button
+        type="button"
+        onClick={onPlay}
+        className="btn-game mt-5 flex h-12 w-full items-center justify-center gap-2 text-[15px]"
+      >
+        {hero ? "Continue adventure" : "Choose your character"}
+        <ArrowRight className="h-5 w-5" strokeWidth={3} />
+      </button>
+    </section>
   );
 }
 

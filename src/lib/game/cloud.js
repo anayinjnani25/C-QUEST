@@ -9,14 +9,18 @@ function db() {
   return supabase;
 }
 
+// The chosen hero rides inside the `progress` JSON column, so it needs no schema change and
+// older rows simply have none.
 function fromRow(row) {
+  const { hero = null, ...progress } = row.progress || {};
   return {
     id: row.id,
     name: row.name,
     glyph: row.glyph,
+    hero,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    progress: row.progress || {},
+    progress,
   };
 }
 
@@ -25,7 +29,7 @@ function toRow(save) {
     id: save.id,
     name: save.name,
     glyph: save.glyph,
-    progress: save.progress,
+    progress: save.hero ? { ...save.progress, hero: save.hero } : save.progress,
     created_at: save.createdAt,
   };
 }

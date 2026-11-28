@@ -98,6 +98,7 @@ function MissionPage() {
 
   useEffect(() => {
     if (ready && !activeSave) navigate({ to: "/" });
+    else if (ready && !activeSave.hero) navigate({ to: "/start" });
   }, [ready, activeSave, navigate]);
 
   // Opening a quest: a boss quest resumes at its first unsolved program.
@@ -355,6 +356,7 @@ function MissionPage() {
           <div className={cn("space-y-3", tab !== "memory" && "hidden lg:block")}>
             {parts ? (
               <BossBattle
+                heroId={activeSave.hero}
                 worldId={mission.world}
                 backdrop={art.image}
                 total={parts.length}
