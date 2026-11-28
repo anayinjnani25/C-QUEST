@@ -833,6 +833,13 @@ function ProfilePage() {
                         {hero.emoji} {hero.name} · {xp} XP · joined {joined}
                       </p>
                     </div>
+                    <Link
+                      to="/start"
+                      search={{ change: 1 }}
+                      className="shrink-0 rounded-full bg-[var(--cb-seg)] px-3 py-2 text-[11.5px] font-semibold text-[var(--cb-ink)] transition-colors hover:bg-[var(--cb-line)]"
+                    >
+                      Change hero
+                    </Link>
                   </div>
 
                   <div className="mt-4">
