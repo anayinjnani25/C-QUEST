@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/start")({
   ssr: false,
+  // `?change=1` opens the hero picker for a player who already has a hero and wants another.
+  validateSearch: (search) => ({ change: search.change === 1 || search.change === "1" ? 1 : undefined }),
   head: () => ({ meta: [{ title: "Choose Your Character — C//QUEST" }] }),
   component: StartPage,
 });
@@ -17,24 +19,28 @@ export const Route = createFileRoute("/start")({
 const monoLabel = "font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink-soft";
 
 // Onboarding: a new player types a name, then picks a hero. A player whose save predates heroes
-// lands straight on the hero step.
+// lands straight on the hero step, and so does a player changing hero from their profile.
 function StartPage() {
   const { ready, activeSave, createSave, chooseHero } = useGame();
   const { user, loading: authLoading } = useAuth();
+  const { change } = Route.useSearch();
   const navigate = useNavigate();
   const [step, setStep] = useState("name");
   const [name, setName] = useState("");
-  const [heroId, setHeroId] = useState(null);
+  const [picked, setPicked] = useState(null);
 
-  const needsHeroOnly = Boolean(activeSave && !activeSave.hero);
+  const changing = Boolean(change && activeSave?.hero);
+  const needsHeroOnly = Boolean(activeSave && (!activeSave.hero || changing));
+  const heroId = picked || (changing ? activeSave.hero : null);
+  const done = Boolean(activeSave?.hero && !changing);
 
   useEffect(() => {
     if (authLoading || !ready) return;
     if (!user) navigate({ to: "/" });
-    else if (activeSave?.hero) navigate({ to: "/map" });
-  }, [authLoading, ready, user, activeSave, navigate]);
+    else if (done) navigate({ to: "/map" });
+  }, [authLoading, ready, user, done, navigate]);
 
-  if (authLoading || !ready || !user || activeSave?.hero) {
+  if (authLoading || !ready || !user || done) {
     return (
       <div className="grid min-h-screen place-items-center">
         <p className="text-[12px] font-extrabold uppercase tracking-[0.18em] text-ink">Loading…</p>
@@ -49,7 +55,7 @@ function StartPage() {
     if (!heroId) return;
     if (needsHeroOnly) chooseHero(heroId);
     else createSave(playerName, heroId);
-    navigate({ to: "/map" });
+    navigate({ to: changing ? "/profile" : "/map" });
   };
 
   return (
@@ -81,10 +87,11 @@ function StartPage() {
           <HeroStep
             playerName={playerName}
             heroId={heroId}
-            onPick={setHeroId}
-            onBack={needsHeroOnly ? null : () => setStep("name")}
+            currentId={changing ? activeSave.hero : null}
+            onPick={setPicked}
+            onBack={changing ? () => navigate({ to: "/profile" }) : needsHeroOnly ? null : () => setStep("name")}
             onConfirm={confirm}
-            returning={needsHeroOnly}
+            mode={changing ? "change" : needsHeroOnly ? "returning" : "new"}
           />
         ) : (
           <NameStep name={name} setName={setName} onNext={() => setStep("hero")} />
@@ -153,20 +160,43 @@ function NameStep({ name, setName, onNext }) {
   );
 }
 
-function HeroStep({ playerName, heroId, onPick, onBack, onConfirm, returning }) {
+const STEP_COPY = {
+  new: {
+    label: (name) => `welcome, ${name}`,
+    intro: "",
+  },
+  returning: {
+    label: () => "one more thing",
+    intro: "Heroes have arrived in C//QUEST. Pick the one who fights for you; your progress stays as it is. ",
+  },
+  change: {
+    label: () => "change your hero",
+    intro: "Changed your mind? Pick a new hero any time; your progress, stars and level stay exactly as they are. ",
+  },
+};
+
+function HeroStep({ playerName, heroId, currentId, onPick, onBack, onConfirm, mode }) {
   const picked = heroId ? heroById(heroId) : null;
+  const copy = STEP_COPY[mode];
+  const cta = !picked
+    ? "Pick a hero"
+    : mode !== "change"
+      ? `Play as ${picked.name}`
+      : picked.id === currentId
+        ? `Keep ${picked.name}`
+        : `Switch to ${picked.name}`;
 
   return (
     <main className="mt-8 flex-1 pb-24 sm:pb-0">
       <div className="anim-fade-up">
-      <p className={monoLabel}>{returning ? "one more thing" : `welcome, ${playerName}`}</p>
+      <p className={monoLabel}>{copy.label(playerName)}</p>
       <h1 className="mt-2 text-[32px] font-extrabold leading-tight tracking-tight text-ink sm:text-[40px]">
         Choose your character
       </h1>
       <p className="mt-2 max-w-xl text-[14px] font-semibold text-ink-soft">
-        {returning && "Heroes have arrived in C//QUEST. Pick the one who fights for you; your progress stays as it is. "}
-        Your hero is yours for this whole adventure. Every hero hits just as hard and levels just as fast; only
-        the fighting style changes.
+        {copy.intro}
+        Every hero hits just as hard and levels just as fast; only the fighting style changes.
+        {mode !== "change" && " You can switch heroes later from your profile."}
       </p>
 
       <div role="radiogroup" aria-label="Characters" className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
@@ -201,6 +231,11 @@ function HeroStep({ playerName, heroId, onPick, onBack, onConfirm, returning }) 
                 <span className="absolute left-2.5 top-2.5 rounded-full bg-black/55 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-white">
                   Hero {i + 1}
                 </span>
+                {hero.id === currentId && (
+                  <span className="absolute bottom-2.5 left-2.5 rounded-full bg-[#58CC02] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-white">
+                    Current
+                  </span>
+                )}
                 {selected && (
                   <span className="absolute right-2.5 top-2.5 grid h-7 w-7 place-items-center rounded-full bg-[#58CC02] text-white shadow-[0_2px_0_#46A302]">
                     <Check className="h-4 w-4" strokeWidth={3.5} />
@@ -235,7 +270,7 @@ function HeroStep({ playerName, heroId, onPick, onBack, onConfirm, returning }) 
           disabled={!picked}
           className="btn-game group inline-flex h-14 flex-1 items-center justify-center gap-2 px-6 text-[16px] disabled:opacity-50 sm:flex-none"
         >
-          {picked ? `Play as ${picked.name}` : "Pick a hero"}
+          {cta}
           <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" strokeWidth={3} />
         </button>
       </div>

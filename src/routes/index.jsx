@@ -138,10 +138,8 @@ function TitleScreen() {
                 every line you type. Nothing to install: continue with Google and your progress follows you.
               </p>
 
+              {signedIn && (
               <div className="mt-7 flex flex-wrap items-center gap-3">
-                {!signedIn ? (
-                  <GoogleSignInButton />
-                ) : (
                 <button
                   type="button"
                   onClick={handleContinue}
@@ -151,8 +149,8 @@ function TitleScreen() {
                   {latest ? "Continue adventure" : "Start playing"}
                   <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" strokeWidth={3} />
                 </button>
-                )}
               </div>
+              )}
               {!configured && (
                 <p className="mt-3 text-[12px] font-semibold text-[#FF4B4B]">
                   Sign-in isn't configured: set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.

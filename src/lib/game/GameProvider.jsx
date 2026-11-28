@@ -115,13 +115,13 @@ export function GameProvider({ children }) {
     return save;
   }, []);
 
-  // A hero is permanent: this only fills in one for a save that has none yet (saves made before
-  // heroes existed).
+  // Sets the active save's hero: a first pick for saves made before heroes existed, or a change
+  // of mind later on. Heroes are cosmetic, so switching never touches progress.
   const chooseHero = useCallback((heroId) => {
     if (!isHeroId(heroId)) return;
     setStore((prev) => ({
       ...prev,
-      saves: prev.saves.map((s) => (s.id === prev.activeId && !s.hero ? { ...s, hero: heroId } : s)),
+      saves: prev.saves.map((s) => (s.id === prev.activeId && s.hero !== heroId ? { ...s, hero: heroId } : s)),
     }));
   }, []);
 
