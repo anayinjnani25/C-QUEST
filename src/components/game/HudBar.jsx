@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Coins, Flame, Star, User } from "lucide-react";
+import HeroAvatar from "@/components/game/HeroAvatar";
 import { useGame } from "@/lib/game/GameProvider";
 import { cn } from "@/lib/utils";
 
@@ -23,9 +24,7 @@ export default function HudBar() {
         to="/map"
         className="flex items-center gap-2.5 rounded-2xl px-1 py-1 transition-colors hover:bg-hover"
       >
-        <span className="grid h-10 w-10 place-items-center rounded-2xl bg-brand-tint text-[18px] font-extrabold text-brand-ink">
-          {activeSave.glyph}
-        </span>
+        <HeroAvatar heroId={activeSave.hero} className="h-10 w-10 rounded-2xl" />
         <span className="hidden sm:block">
           <span className="block text-[13px] font-extrabold leading-none text-ink">{activeSave.name}</span>
           <span className="mt-1 block text-[10px] font-bold uppercase tracking-wide text-ink-soft">

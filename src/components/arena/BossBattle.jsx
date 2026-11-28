@@ -1,5 +1,6 @@
 import { Heart, Skull, Swords } from "lucide-react";
-import { bossForWorld, HeroSprite } from "@/components/arena/battleSprites";
+import { bossForWorld } from "@/components/arena/battleSprites";
+import { heroById } from "@/lib/game/heroes";
 import { cn } from "@/lib/utils";
 
 export const HERO_MAX_HP = 100;
@@ -45,7 +46,141 @@ function HpBar({ label, value, max, tone, align = "left", icon: Icon }) {
   );
 }
 
-function caption(event, boss, defeated) {
+// Each hero's attack: the hero's own move, the effect drawn over the arena, a battle cry, and
+// when the blow lands (the boss flinches then). Purely visual; damage is the same for everyone.
+const ATTACKS = {
+  swordsman: { motion: "bt-hero-lunge", cry: "Three-blade slash!", hit: "0.32s", Fx: SwordFx },
+  firekick: { motion: "bt-hero-kick", cry: "Blazing kick!", hit: "0.38s", Fx: KickFx },
+  firemage: { motion: "bt-hero-cast", cry: "Fireball!", hit: "0.62s", Fx: FireballFx },
+  music: { motion: "bt-hero-sing", cry: "Sonic wave!", hit: "0.66s", Fx: MusicFx },
+  multiarm: { motion: "bt-hero-channel", cry: "A hundred hands!", hit: "0.55s", Fx: ArmsFx },
+  assassin: { motion: "bt-hero-blink", cry: "Shadow strike!", hit: "0.4s", Fx: DaggerFx },
+};
+
+function SwordFx() {
+  return (
+    <svg viewBox="0 0 100 100" className="absolute bottom-[12%] right-[10%] h-[60%] w-[34%]" aria-hidden>
+      <path className="bt-slash" d="M18 12 Q70 30 84 92" stroke="#fff" strokeWidth="5" strokeLinecap="round" fill="none" />
+      <path className="bt-slash bt-slash-2" d="M30 6 Q82 34 90 80" stroke="#ffe27a" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+      <path className="bt-slash bt-slash-3" d="M10 60 Q50 40 94 44" stroke="#d9f2ff" strokeWidth="4" strokeLinecap="round" fill="none" />
+    </svg>
+  );
+}
+
+function KickFx() {
+  return (
+    <>
+      <svg viewBox="0 0 100 100" className="absolute bottom-[14%] right-[8%] h-[64%] w-[40%] overflow-visible" aria-hidden>
+        <defs>
+          <linearGradient id="fx-kick" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#fff3a8" />
+            <stop offset="0.5" stopColor="#ff9a1f" />
+            <stop offset="1" stopColor="#e0243a" />
+          </linearGradient>
+        </defs>
+        <path className="bt-arc" d="M6 70 Q30 4 92 30" stroke="url(#fx-kick)" strokeWidth="13" strokeLinecap="round" fill="none" />
+        <path className="bt-arc bt-arc-2" d="M14 82 Q44 24 96 50" stroke="#ffd24d" strokeWidth="5" strokeLinecap="round" fill="none" />
+      </svg>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <span
+          key={i}
+          className="bt-spark absolute h-2 w-2 rounded-full bg-[#ffb02e] shadow-[0_0_8px_#ff7a1f]"
+          style={{ right: `${18 + i * 6}%`, top: `${34 + (i % 3) * 10}%`, animationDelay: `${0.36 + i * 0.05}s`, "--dx": `${(i - 2) * 9}px` }}
+        />
+      ))}
+    </>
+  );
+}
+
+function FireballFx() {
+  return (
+    <>
+      <span className="bt-fireball absolute bottom-[40%] h-9 w-9 rounded-full" />
+      <span className="bt-burst absolute bottom-[22%] right-[12%] h-[56%] w-[34%] rounded-full" />
+    </>
+  );
+}
+
+function MusicFx() {
+  const notes = ["♪", "♫", "♬", "♪"];
+  return (
+    <>
+      {notes.map((note, i) => (
+        <span
+          key={i}
+          className="bt-note absolute font-display text-[24px] font-extrabold text-[#f2c6ff] [text-shadow:0_0_10px_#ce82ff,0_2px_0_#3a0a4a]"
+          style={{ bottom: `${36 + (i % 2) * 14}%`, animationDelay: `${0.1 + i * 0.1}s` }}
+        >
+          {note}
+        </span>
+      ))}
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="bt-ring absolute bottom-[26%] right-[16%] aspect-square h-[46%] rounded-full border-[3px] border-[#e4a8ff]"
+          style={{ animationDelay: `${0.6 + i * 0.12}s` }}
+        />
+      ))}
+    </>
+  );
+}
+
+// Arms bloom out of thin air around the boss and clutch it.
+const ARMS = [
+  { right: "34%", bottom: "50%", rot: -35 },
+  { right: "8%", bottom: "62%", rot: 40 },
+  { right: "38%", bottom: "20%", rot: -70 },
+  { right: "4%", bottom: "24%", rot: 75 },
+  { right: "22%", bottom: "70%", rot: 5 },
+  { right: "20%", bottom: "8%", rot: 180 },
+];
+
+function ArmsFx() {
+  return (
+    <>
+      {ARMS.map((arm, i) => (
+        <span
+          key={i}
+          className="absolute h-[30%] w-[12%]"
+          style={{ right: arm.right, bottom: arm.bottom, transform: `rotate(${arm.rot}deg)` }}
+        >
+          <svg
+            viewBox="0 0 30 60"
+            className="bt-arm h-full w-full overflow-visible"
+            style={{ animationDelay: `${0.12 + i * 0.06}s` }}
+            aria-hidden
+          >
+            <path d="M11 60 L12 26 L19 26 L20 60Z" fill="#f3cfb0" />
+            <path d="M8 28 Q6 14 9 6 Q11 3 12 7 L12 16 L13 2 Q15 -1 17 2 L17 15 L19 4 Q21 1 23 5 L22 17 L25 10 Q28 9 27 14 L24 28Z" fill="#f6d8bd" stroke="#b9876a" strokeWidth="1" />
+            <circle cx="15" cy="60" r="7" fill="#f7a8c8" opacity="0.85" />
+          </svg>
+        </span>
+      ))}
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <span
+          key={i}
+          className="bt-petal absolute h-2.5 w-1.5 rounded-full bg-[#ffb6d5]"
+          style={{ right: `${10 + i * 6}%`, top: `${26 + (i % 3) * 14}%`, animationDelay: `${0.5 + i * 0.05}s` }}
+        />
+      ))}
+    </>
+  );
+}
+
+function DaggerFx() {
+  return (
+    <>
+      <span className="bt-smoke absolute bottom-[8%] left-[8%] h-[50%] w-[26%] rounded-full" />
+      <svg viewBox="0 0 100 100" className="absolute bottom-[16%] right-[12%] h-[56%] w-[32%]" aria-hidden>
+        <path className="bt-slash bt-dagger" d="M12 12 L88 88" stroke="#ff3b4f" strokeWidth="4" strokeLinecap="round" fill="none" />
+        <path className="bt-slash bt-dagger bt-slash-2" d="M88 12 L12 88" stroke="#ff3b4f" strokeWidth="4" strokeLinecap="round" fill="none" />
+        <path className="bt-slash bt-dagger bt-slash-3" d="M20 14 L84 80" stroke="#ffe27a" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+      </svg>
+    </>
+  );
+}
+
+function caption(event, boss, defeated, attack) {
   if (!event) {
     return defeated
       ? `${boss.name} is beaten. Replay any program to keep your skills sharp.`
@@ -54,7 +189,7 @@ function caption(event, boss, defeated) {
   if (event.type === "hero") {
     return event.final
       ? `${boss.name} falls! The way forward is open.`
-      : `Direct hit! ${boss.short} loses ${event.damage} HP.`;
+      : `${attack.cry} ${boss.short} loses ${event.damage} HP.`;
   }
   if (event.type === "boss") {
     const why = event.reason === "error" ? "Your spell fizzled" : "Wrong output";
@@ -65,7 +200,10 @@ function caption(event, boss, defeated) {
   return "Back on your feet with full HP. Try again!";
 }
 
-export default function BossBattle({ worldId, backdrop, total, current, solved, hits, heroHp, event, seq }) {
+export default function BossBattle({ heroId, worldId, backdrop, total, current, solved, hits, heroHp, event, seq }) {
+  const hero = heroById(heroId);
+  const attack = ATTACKS[hero.id] || ATTACKS.swordsman;
+  const AttackFx = attack.Fx;
   const boss = bossForWorld(worldId);
   const Boss = boss.Sprite;
   const bossMax = total * 20;
@@ -75,7 +213,7 @@ export default function BossBattle({ worldId, backdrop, total, current, solved, 
   const type = event?.type || null;
 
   const heroMotion =
-    type === "hero" ? "bt-hero-lunge" : type === "boss" ? (event.ko ? "bt-hero-ko" : "bt-hero-hurt") : type === "revive" ? "bt-hero-revive" : "";
+    type === "hero" ? attack.motion : type === "boss" ? (event.ko ? "bt-hero-ko" : "bt-hero-hurt") : type === "revive" ? "bt-hero-revive" : "";
   const bossMotion =
     type === "boss" ? "bt-boss-lunge" : type === "hero" ? (event.final ? "bt-boss-defeat" : "bt-boss-hurt") : defeated ? "bt-boss-down" : "";
 
@@ -93,7 +231,7 @@ export default function BossBattle({ worldId, backdrop, total, current, solved, 
 
       <div
         className="relative mt-3 h-[230px] overflow-hidden rounded-2xl border-2 border-frame bg-[#120c1c]"
-        style={{ "--boss-color": boss.color }}
+        style={{ "--boss-color": boss.color, "--hit": attack.hit }}
       >
         {backdrop ? (
           <img
@@ -115,11 +253,19 @@ export default function BossBattle({ worldId, backdrop, total, current, solved, 
         </div>
 
         {/* hero */}
-        <div className="absolute bottom-[6%] left-[6%] z-10 aspect-[110/120] h-[52%]">
-          <div className="absolute -bottom-1 left-[18%] h-2.5 w-[60%] rounded-full bg-black/50 blur-[2px]" />
+        <div className="absolute bottom-[5%] left-[3%] z-10 h-[66%] w-[34%]">
+          <div className="absolute -bottom-1 left-[14%] h-2.5 w-[72%] rounded-full bg-black/50 blur-[2px]" />
           <div key={`hero-${seq}`} className={cn("h-full w-full", heroMotion)}>
             <div className="bt-idle h-full w-full">
-              <HeroSprite />
+              <img
+                src={hero.image}
+                alt={hero.name}
+                draggable={false}
+                className={cn(
+                  "h-full w-full select-none object-contain object-bottom drop-shadow-[0_0_6px_rgb(0_0_0/0.6)]",
+                  hero.flip && "-scale-x-100"
+                )}
+              />
             </div>
           </div>
         </div>
@@ -137,11 +283,8 @@ export default function BossBattle({ worldId, backdrop, total, current, solved, 
         {/* effects, re-mounted on every exchange so they replay */}
         {type === "hero" ? (
           <div key={`fx-${seq}`} className="pointer-events-none absolute inset-0 z-20">
-            <svg viewBox="0 0 100 100" className="absolute bottom-[12%] right-[10%] h-[60%] w-[34%]" aria-hidden>
-              <path className="bt-slash" d="M18 12 Q70 30 84 92" stroke="#fff" strokeWidth="5" strokeLinecap="round" fill="none" />
-              <path className="bt-slash bt-slash-2" d="M30 6 Q82 34 90 80" stroke="#ffe27a" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-            </svg>
-            <span className="bt-dmg absolute right-[22%] top-[26%] font-display text-[22px] font-extrabold text-[#ffe27a] [text-shadow:0_2px_0_#7a2a00,0_0_10px_rgb(0_0_0/0.8)]">
+            <AttackFx />
+            <span className="bt-dmg bt-dmg-hero absolute right-[22%] top-[26%] font-display text-[22px] font-extrabold text-[#ffe27a] [text-shadow:0_2px_0_#7a2a00,0_0_10px_rgb(0_0_0/0.8)]">
               -{event.damage}
             </span>
           </div>
@@ -167,7 +310,7 @@ export default function BossBattle({ worldId, backdrop, total, current, solved, 
       </div>
 
       <p className="mx-auto mt-3 min-h-[36px] max-w-[260px] text-center text-[12.5px] font-bold leading-snug text-ink" aria-live="polite">
-        {caption(event, boss, defeated)}
+        {caption(event, boss, defeated, attack)}
       </p>
 
       <div className="mt-2 flex items-center justify-center gap-2">

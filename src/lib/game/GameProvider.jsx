@@ -11,6 +11,7 @@ import { fetchStore, removeSave, saveSettings, storeDraft, upsertSave, upsertSav
 import { applyBossPart, applyCompletion } from "@/lib/game/achievements";
 import { applyMastery } from "@/lib/game/mastery";
 import { setSoundEnabled } from "@/lib/game/sound";
+import { isHeroId } from "@/lib/game/heroes";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
 const GameContext = createContext(null);
@@ -108,10 +109,20 @@ export function GameProvider({ children }) {
     [store.saves, store.activeId]
   );
 
-  const createSave = useCallback((name, glyph) => {
-    const save = newSave(name, glyph);
+  const createSave = useCallback((name, hero) => {
+    const save = newSave(name, hero);
     setStore((prev) => ({ ...prev, saves: [save, ...prev.saves], activeId: save.id }));
     return save;
+  }, []);
+
+  // A hero is permanent: this only fills in one for a save that has none yet (saves made before
+  // heroes existed).
+  const chooseHero = useCallback((heroId) => {
+    if (!isHeroId(heroId)) return;
+    setStore((prev) => ({
+      ...prev,
+      saves: prev.saves.map((s) => (s.id === prev.activeId && !s.hero ? { ...s, hero: heroId } : s)),
+    }));
   }, []);
 
   const selectSave = useCallback((id) => {
@@ -185,6 +196,7 @@ export function GameProvider({ children }) {
       progress: activeSave?.progress || null,
       level: levelProgress(activeSave?.progress?.xp || 0),
       createSave,
+      chooseHero,
       selectSave,
       deleteSave,
       completeMission,
@@ -201,6 +213,7 @@ export function GameProvider({ children }) {
       store.activeId,
       store.settings,
       createSave,
+      chooseHero,
       selectSave,
       deleteSave,
       completeMission,

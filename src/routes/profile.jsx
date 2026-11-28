@@ -28,7 +28,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "@/lib/theme/ThemeProvider";
+import HeroAvatar from "@/components/game/HeroAvatar";
 import { useGame } from "@/lib/game/GameProvider";
+import { heroById } from "@/lib/game/heroes";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { ACHIEVEMENTS } from "@/lib/game/achievements";
 import { WORLDS, isWorldMastered, isWorldUnlocked, worldProgress } from "@/lib/game/curriculum";
@@ -511,13 +513,7 @@ function ProfilePage() {
   const streak = progress?.streak || { count: 0, best: 0 };
   const xp = progress?.xp || 0;
 
-  const initials =
-    activeSave.name
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0].toUpperCase())
-      .join("") || "OP";
+  const hero = heroById(activeSave.hero);
 
   const joined = new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
@@ -657,11 +653,8 @@ function ProfilePage() {
             >
               {isDark ? <Sun className="h-[18px] w-[18px]" strokeWidth={2.2} /> : <Moon className="h-[18px] w-[18px]" strokeWidth={2.2} />}
             </button>
-            <span
-              className="hidden h-11 w-11 place-items-center rounded-full bg-[var(--cb-seg)] text-[12.5px] font-bold text-[var(--cb-ink)] ring-1 ring-[var(--cb-line)] sm:grid"
-              title={activeSave.name}
-            >
-              {initials}
+            <span className="hidden sm:block" title={activeSave.name}>
+              <HeroAvatar heroId={activeSave.hero} className="h-11 w-11 rounded-full ring-1 ring-[var(--cb-line)]" />
             </span>
           </div>
         </header>
@@ -829,25 +822,17 @@ function ProfilePage() {
               </div>
 
               <div className="grid gap-3 lg:grid-cols-[1.02fr_0.98fr]">
-                <SectionCard title="Operator" meta={`Level ${level.level}`} delay={380}>
+                <SectionCard title="Your hero" meta={`Level ${level.level}`} delay={380}>
                   <div className="flex items-center gap-3.5">
-                    <span className="grid h-16 w-16 shrink-0 place-items-center rounded-[20px] bg-[var(--cb-seg)] text-[28px] font-semibold leading-none text-[var(--cb-ink)]">
-                      {activeSave.glyph}
-                    </span>
+                    <HeroAvatar heroId={activeSave.hero} label={hero.name} className="h-16 w-16 rounded-[20px]" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[22px] font-semibold leading-tight tracking-[-0.02em] text-[var(--cb-ink)]">
                         {activeSave.name}
                       </p>
                       <p className="mt-1 text-[12.5px] font-medium text-[var(--cb-muted)]">
-                        {xp} XP · joined {joined}
+                        {hero.emoji} {hero.name} · {xp} XP · joined {joined}
                       </p>
                     </div>
-                    <Link
-                      to="/"
-                      className="shrink-0 rounded-full bg-[var(--cb-seg)] px-3 py-2 text-[11.5px] font-semibold text-[var(--cb-ink)] transition-colors hover:bg-[var(--cb-line)]"
-                    >
-                      Switch save
-                    </Link>
                   </div>
 
                   <div className="mt-4">

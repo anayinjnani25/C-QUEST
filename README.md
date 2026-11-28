@@ -47,15 +47,16 @@ Every push to `main` builds the static site and publishes it to GitHub Pages
 
 | Path | What it is |
 | --- | --- |
-| `src/routes/index.jsx` | Title screen and save slots |
+| `src/routes/index.jsx` | Title screen and the player's adventure card |
+| `src/routes/start.jsx` | Onboarding: name, then choose your character |
 | `src/routes/map.jsx` | The campaign map |
 | `src/routes/mission.$missionId.jsx` | A quest: briefing, code editor, run, memory view |
 | `src/routes/profile.jsx` | Stats, achievements, export/import |
 | `src/lib/supabase.js`, `src/lib/auth/` | Supabase client and Google sign-in |
-| `src/lib/game/` | Saves (synced to Supabase via `cloud.js`), curriculum, achievements, feedback, sound |
+| `src/lib/game/` | Saves (synced to Supabase via `cloud.js`), heroes, curriculum, achievements, feedback, sound |
 | `supabase/migrations/` | Database schema and row-level security |
 | `src/lib/c/` | The in-browser C engine and syntax highlighting |
-| `src/components/game/` | Campaign chrome (HUD, world sections, save cards) |
+| `src/components/game/` | Campaign chrome (HUD, world sections, hero avatar) |
 | `src/components/arena/` | Mission chrome (editor, terminal, checks, tutor) |
 | `src/components/ui/` | shadcn/ui primitives (button, dialog, input, sonner); tokens live in `src/index.css` and `tailwind.config.js` |
 
